@@ -10,6 +10,13 @@
 	"assets": {
 		"not_found_handling": "single-page-application"
 	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "campus-maintenance-db",
+			"database_id": "90fd6c00-4957-4620-9784-216d4ef45875"
+		}
+	],
 	"observability": {
 		"enabled": true
 	},
