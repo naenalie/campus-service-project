@@ -1,7 +1,7 @@
 // worker/db/queries.ts
 // Implementasi lengkap query database SQLite/D1 untuk seluruh alur bisnis
 
-import { User, ServiceRequest, StatusHistory, Comment } from '../types';
+import type { User, ServiceRequest, StatusHistory, Comment } from '../types';
 
 // ==========================================
 // USER QUERIES

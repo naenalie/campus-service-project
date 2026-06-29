@@ -1,7 +1,7 @@
 // worker/routes/auth.ts
 // Implementasi router autentikasi backend (CR-02)
 
-import { Env, ApiResponse } from '../types';
+import type { Env, ApiResponse } from '../types';
 import { validateRegister } from '../middleware/validation';
 import { hashPassword, verifyPassword, generateToken, getAuthenticatedUser } from '../middleware/auth';
 import { getUserByEmail, createUser, createSession, deleteSession } from '../db/queries';
@@ -98,7 +98,7 @@ export async function handleAuthRoutes(request: Request, env: Env, url: URL): Pr
       }
 
       // Verifikasi password
-      const passwordMatches = await verifyPassword(password, user.password_hash);
+      const passwordMatches = await verifyPassword(password, user.password_hash || '');
       if (!passwordMatches) {
         const res: ApiResponse<null> = { success: false, error: 'Email atau password salah.' };
         return new Response(JSON.stringify(res), { status: 401, headers: jsonHeaders });

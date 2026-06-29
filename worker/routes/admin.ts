@@ -1,7 +1,7 @@
 // worker/routes/admin.ts
 // Implementasi router khusus administrator (ADMIN)
 
-import { Env, User, ApiResponse } from '../types';
+import type { Env, User, ApiResponse } from '../types';
 import { validateUpdateStatus } from '../middleware/validation';
 import { 
   getRequestById, 

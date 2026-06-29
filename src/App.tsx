@@ -4,7 +4,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { OrbBackground } from './components/OrbBackground';
+import './styles/design-system.css';
 
 // Import Halaman (Pages)
 import { LoginPage } from './pages/LoginPage';
@@ -18,11 +21,13 @@ import { ManagerDashboard } from './pages/ManagerDashboard';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes (Tidak butuh autentikasi) */}
-          <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider>
+      <OrbBackground />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes (Tidak butuh autentikasi) */}
+            <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Protected Routes (Wajib Login) */}
@@ -90,7 +95,8 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

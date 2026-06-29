@@ -1,7 +1,8 @@
 // src/context/AuthContext.tsx
 // Implementasi lengkap React Context untuk manajemen sesi autentikasi (CR-02)
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import * as api from '../services/api';
 
 export interface User {

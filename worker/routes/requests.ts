@@ -1,7 +1,7 @@
 // worker/routes/requests.ts
 // Implementasi router laporan keluhan (service requests)
 
-import { Env, User, ApiResponse } from '../types';
+import type { Env, User, ApiResponse } from '../types';
 import { validateCreateRequest, validateComment } from '../middleware/validation';
 import { 
   getAllRequests, 

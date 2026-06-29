@@ -1,9 +1,10 @@
 // src/pages/LoginPage.tsx
-// Antarmuka Halaman Login (CR-02) dengan visualisasi premium dan modern
+// Halaman Login Premium (CR-02) berbasis Liquid Glass + Glassmorphism + Neumorphism
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export const LoginPage: React.FC = () => {
   const { user, login, isLoading } = useAuth();
@@ -11,10 +12,12 @@ export const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shakeError, setShakeError] = useState(false);
 
-  // Guard: Jika user sudah login, arahkan langsung ke dashboard yang tepat
+  // Redirect otomatis jika sudah memiliki sesi login aktif
   useEffect(() => {
     if (user) {
       switch (user.role) {
@@ -37,202 +40,326 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setShakeError(false);
 
     if (!email.trim() || !password) {
-      setError('Email dan password wajib diisi.');
+      triggerError('Email dan password wajib diisi.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await login(email.trim(), password);
-      // Sesi login berhasil, useEffect di atas akan menangani redirect
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Email atau password salah. Silakan coba lagi.');
+      triggerError(err.message || 'Email atau password salah. Silakan coba lagi.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const triggerError = (msg: string) => {
+    setError(msg);
+    setShakeError(true);
+    // Matikan efek shake setelah 400ms agar bisa di-trigger ulang
+    setTimeout(() => setShakeError(false), 400);
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <span style={styles.logoIcon}>🏛</span>
-          <h1 style={styles.title}>Campus Service</h1>
-          <p style={styles.subtitle}>Request and Maintenance System</p>
+    <div style={localStyles.pageContainer}>
+      {/* Theme Toggle di Pojok Kanan Atas */}
+      <div style={localStyles.toggleWrapper}>
+        <ThemeToggle />
+      </div>
+
+      {/* Main Login Layout */}
+      <div className="animate-in" style={localStyles.contentWrapper}>
+        
+        {/* Logo & Judul Instansi */}
+        <div style={localStyles.logoContainer}>
+          <div style={localStyles.logoIconWrapper}>
+            <span style={localStyles.logoIcon}>🏛</span>
+          </div>
+          <h1 style={localStyles.mainTitle}>Campus Service</h1>
+          <h2 style={localStyles.subTitle}>Universitas Klabat</h2>
+          <p style={localStyles.captionText}>Sistem Pengelolaan Perawatan Sarana & Prasarana</p>
         </div>
 
-        {error && (
-          <div style={styles.errorAlert}>
-            <span style={styles.alertIcon}>⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
+        {/* Card Form Login */}
+        <div 
+          className={`glass-card-strong ${shakeError ? 'error-shake' : ''}`} 
+          style={localStyles.loginCard}
+        >
+          <h3 className="text-heading" style={localStyles.cardHeader}>Selamat datang kembali</h3>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label htmlFor="email" style={styles.label}>Email Kampus</label>
-            <input
-              type="email"
-              id="email"
-              placeholder="gwen@unklab.ac.id"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+          {error && (
+            <div style={localStyles.errorAlert}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={localStyles.form}>
+            <div style={localStyles.formGroup}>
+              <label htmlFor="email" style={localStyles.inputLabel}>Email Kampus</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="gwen@unklab.ac.id"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting || isLoading}
+                className="neu-input"
+                required
+              />
+            </div>
+
+            <div style={localStyles.formGroup}>
+              <label htmlFor="password" style={localStyles.inputLabel}>Password</label>
+              <div style={localStyles.passwordWrapper}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting || isLoading}
+                  className="neu-input"
+                  style={{ paddingRight: '48px' }}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={localStyles.eyeButton}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                >
+                  {showPassword ? '👁️' : '🔒'}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
               disabled={isSubmitting || isLoading}
-              style={styles.input}
-              required
-            />
+              className="btn-primary"
+              style={{ width: '100%', marginTop: '8px' }}
+            >
+              {isSubmitting ? (
+                <>
+                  <div style={localStyles.spinnerMini}></div>
+                  <span>Menghubungkan...</span>
+                </>
+              ) : (
+                'Masuk →'
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div style={localStyles.dividerContainer}>
+            <div style={localStyles.dividerLine}></div>
+            <span style={localStyles.dividerText}>atau</span>
+            <div style={localStyles.dividerLine}></div>
           </div>
 
-          <div style={styles.formGroup}>
-            <label htmlFor="password" style={styles.label}>Password</label>
-            <input
-              type="password"
-              id="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isSubmitting || isLoading}
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting || isLoading}
-            style={isSubmitting || isLoading ? { ...styles.button, ...styles.buttonDisabled } : styles.button}
-          >
-            {isSubmitting ? '⏳ Menghubungkan...' : 'Masuk →'}
-          </button>
-        </form>
-
-        <div style={styles.footer}>
-          <p style={styles.footerText}>
-            Belum memiliki akun?{' '}
-            <Link to="/register" style={styles.link}>
-              Daftar di sini
+          {/* Link Daftar Akun Baru */}
+          <div style={localStyles.registerWrapper}>
+            <p style={localStyles.registerText}>Belum memiliki akun?</p>
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              <button className="btn-glass" style={{ width: '100%' }}>
+                Daftar Sekarang
+              </button>
             </Link>
-          </p>
+          </div>
         </div>
+
+        {/* Footer */}
+        <p style={localStyles.footerText}>© 2026 UNKLAB Campus Services</p>
       </div>
     </div>
   );
 };
 
-// Premium CSS-in-JS Styles (curated dark-mode compatible style)
-const styles: Record<string, React.CSSProperties> = {
-  container: {
+// Local inline-styles
+const localStyles: Record<string, React.CSSProperties> = {
+  pageContainer: {
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    backgroundColor: '#0f172a', // Slate 900
-    fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-    padding: '20px',
+    width: '100vw',
+    position: 'relative',
+    padding: '24px',
+    zIndex: 1,
   },
-  card: {
+  toggleWrapper: {
+    position: 'absolute',
+    top: '24px',
+    right: '24px',
+    zIndex: 10,
+  },
+  contentWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     width: '100%',
     maxWidth: '420px',
-    backgroundColor: '#1e293b', // Slate 800
-    borderRadius: '16px',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
-    padding: '40px 32px',
-    border: '1px solid #334155', // Slate 700
   },
-  header: {
+  logoContainer: {
     textAlign: 'center',
-    marginBottom: '32px',
+    marginBottom: '28px',
+  },
+  logoIconWrapper: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '20px',
+    background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-teal))',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 24px rgba(139, 92, 246, 0.25)',
+    marginBottom: '16px',
   },
   logoIcon: {
-    fontSize: '48px',
-    display: 'block',
-    marginBottom: '12px',
+    fontSize: '32px',
+    color: '#fff',
   },
-  title: {
-    fontSize: '24px',
+  mainTitle: {
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: '28px',
     fontWeight: '700',
-    color: '#f8fafc', // Slate 50
-    margin: '0 0 6px 0',
+    color: 'var(--text-primary)',
+    margin: '0',
+    lineHeight: '1.2',
   },
-  subtitle: {
-    fontSize: '14px',
-    color: '#94a3b8', // Slate 400
-    margin: 0,
+  subTitle: {
+    fontFamily: "'Outfit', sans-serif",
+    fontSize: '18px',
+    fontWeight: '600',
+    color: 'var(--accent-purple)',
+    margin: '4px 0 0 0',
+  },
+  captionText: {
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+    margin: '8px 0 0 0',
+  },
+  loginCard: {
+    width: '100%',
+    padding: '36px 28px',
+  },
+  cardHeader: {
+    textAlign: 'center',
+    color: 'var(--text-primary)',
+    marginBottom: '24px',
   },
   errorAlert: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#451a03', // Amber/Red Dark
-    border: '1px solid #78350f',
-    borderRadius: '8px',
+    backgroundColor: 'rgba(244, 63, 94, 0.12)', // Rose subtle
+    border: '1px solid rgba(244, 63, 94, 0.25)',
+    borderRadius: '12px',
     padding: '12px 16px',
-    color: '#fef3c7',
-    fontSize: '14px',
-    marginBottom: '24px',
-  },
-  alertIcon: {
-    fontSize: '16px',
+    color: 'var(--accent-rose)',
+    fontSize: '13.5px',
+    marginBottom: '20px',
+    lineHeight: '1.4',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '18px',
   },
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
   },
-  label: {
+  inputLabel: {
     fontSize: '12px',
     fontWeight: '600',
-    color: '#cbd5e1', // Slate 300
+    color: 'var(--text-secondary)',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.04em',
   },
-  input: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569', // Slate 600
-    borderRadius: '8px',
-    padding: '12px 16px',
-    color: '#f8fafc',
-    fontSize: '15px',
-    outline: 'none',
-    transition: 'border-color 0.2s',
+  passwordWrapper: {
+    position: 'relative',
+    width: '100%',
   },
-  button: {
-    backgroundColor: '#3b82f6', // Blue 500
-    color: '#ffffff',
+  eyeButton: {
+    position: 'absolute',
+    right: '14px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
     border: 'none',
-    borderRadius: '8px',
-    padding: '14px',
-    fontSize: '16px',
-    fontWeight: '600',
+    color: 'var(--text-muted)',
+    fontSize: '18px',
     cursor: 'pointer',
-    transition: 'background-color 0.2s, transform 0.1s',
-    marginTop: '10px',
+    padding: '4px',
+    outline: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  buttonDisabled: {
-    backgroundColor: '#1e3a8a',
-    color: '#93c5fd',
-    cursor: 'not-allowed',
+  spinnerMini: {
+    width: '18px',
+    height: '18px',
+    border: '2px solid rgba(255,255,255,0.3)',
+    borderTop: '2px solid white',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
   },
-  footer: {
-    marginTop: '32px',
-    textAlign: 'center',
+  dividerContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    margin: '24px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    backgroundColor: 'var(--border-subtle)',
+  },
+  dividerText: {
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+  },
+  registerWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  registerText: {
+    fontSize: '13.5px',
+    color: 'var(--text-secondary)',
   },
   footerText: {
-    fontSize: '14px',
-    color: '#94a3b8',
-    margin: 0,
-  },
-  link: {
-    color: '#60a5fa', // Blue 400
-    textDecoration: 'none',
-    fontWeight: '600',
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+    marginTop: '32px',
   },
 };
+
+// CSS Injection Shake Animation untuk card error
+if (typeof document !== 'undefined') {
+  const styleTag = document.createElement('style');
+  styleTag.innerHTML = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .error-shake {
+      animation: shake 0.15s ease-in-out 0s 2;
+    }
+  `;
+  document.head.appendChild(styleTag);
+}

@@ -7,7 +7,7 @@ import { handleAdminRoutes } from './routes/admin';
 import { handleTechnicianRoutes } from './routes/technician';
 import { handleDashboardRoutes } from './routes/dashboard';
 import { getAuthenticatedUser } from './middleware/auth';
-import { Env } from './types';
+import type { Env } from './types';
 
 function json(data: unknown, status = 200) {
   return Response.json(data, { 

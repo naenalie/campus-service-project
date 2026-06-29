@@ -9,6 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password_hash?: string;
   role: 'PELAPOR' | 'ADMIN' | 'TEKNISI' | 'MANAJER';
   is_active: number;
   created_at: string;

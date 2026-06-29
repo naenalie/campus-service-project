@@ -1,7 +1,7 @@
 // worker/routes/technician.ts
 // Implementasi router khusus Teknisi (TEKNISI)
 
-import { Env, User, ApiResponse } from '../types';
+import type { Env, User, ApiResponse } from '../types';
 import { getAllRequests, getRequestById, updateRequestStatus } from '../db/queries';
 
 const jsonHeaders = { 'Content-Type': 'application/json' };

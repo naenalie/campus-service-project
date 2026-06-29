@@ -107,8 +107,11 @@ export function validateUpdateStatus(input: unknown): { valid: boolean; errors: 
   }
 
   const data = input as Record<string, unknown>;
-  const currentStatus = typeof data.current_status === 'string' ? data.current_status.trim().toUpperCase() : '';
-  const newStatus = typeof data.new_status === 'string' ? data.new_status.trim().toUpperCase() : '';
+  const currentStatusRaw = data.current_status !== undefined ? data.current_status : data.currentStatus;
+  const newStatusRaw = data.new_status !== undefined ? data.new_status : data.newStatus;
+
+  const currentStatus = typeof currentStatusRaw === 'string' ? currentStatusRaw.trim().toUpperCase() : '';
+  const newStatus = typeof newStatusRaw === 'string' ? newStatusRaw.trim().toUpperCase() : '';
 
   if (!newStatus) {
     errors.push('Status baru wajib ditentukan');

@@ -1,7 +1,7 @@
 // worker/middleware/auth.ts
 // Implementasi lengkap sistem autentikasi & otorisasi Cloudflare Workers (CR-02)
 
-import { User } from '../types';
+import type { User } from '../types';
 
 /**
  * Generate Sesi Token UUID v4 secara acak

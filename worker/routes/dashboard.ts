@@ -1,7 +1,7 @@
 // worker/routes/dashboard.ts
 // Implementasi router statistik dashboard untuk Administrator & Manajer Fasilitas
 
-import { Env, User, ApiResponse } from '../types';
+import type { Env, User, ApiResponse } from '../types';
 import { getDashboardSummary } from '../db/queries';
 
 const jsonHeaders = { 'Content-Type': 'application/json' };
