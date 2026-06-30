@@ -2,9 +2,9 @@
 // Halaman Penugasan Kerja & Progress Teknisi (FR-05, FR-06) dengan Peta Kampus Interaktif
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+
 import { useAuth } from '../context/AuthContext';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { CampusMap } from '../components/CampusMap';
 import * as api from '../services/api';
 
@@ -108,23 +108,22 @@ export const TechnicianPage: React.FC = () => {
   return (
     <div style={localStyles.layoutWrapper}>
       
-      {/* HEADER GLASS (Sticky) */}
-      <header className="glass-card-strong" style={localStyles.header}>
-        <div style={localStyles.headerBrand}>
-          <span style={{ fontSize: '24px' }}>🏛</span>
-          <div>
-            <h2 style={localStyles.headerTitle}>Tugas Perbaikan</h2>
-            <p style={localStyles.headerSubtitle}>Daftar Penugasan Kerja</p>
-          </div>
+      {/* HEADER BANNER SOLID */}
+      <header style={{ backgroundColor: '#101411', padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '24px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>
+            Tugas Perbaikan (Teknisi)
+          </h2>
+          <p style={{ fontSize: '13px', color: '#8E9A90', marginTop: '4px', margin: 0 }}>
+            Daftar Penugasan Kerja Sarana Kampus UNKLAB
+          </p>
         </div>
-
-        <div style={localStyles.headerMeta}>
-          <span style={localStyles.userBadge}>
-            👤 {user?.name} (TEKNISI)
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#FFFFFF' }}>
+            👤 {user?.name}
           </span>
-          <ThemeToggle />
-          <button onClick={handleLogout} style={localStyles.logoutBtn}>
-            🚪
+          <button onClick={handleLogout} className="nature-pill inactive" style={{ color: '#EF4444' }}>
+            🚪 Keluar
           </button>
         </div>
       </header>
@@ -132,7 +131,7 @@ export const TechnicianPage: React.FC = () => {
       {/* MAP & LIST CONTENT */}
       <div style={localStyles.contentContainer}>
         
-        {/* TOP HALF: CAMPUS MAP VIEW (60% Viewport Height) */}
+        {/* TOP HALF: CAMPUS MAP VIEW */}
         <section style={localStyles.mapSection}>
           <CampusMap 
             requests={requests}
@@ -141,16 +140,16 @@ export const TechnicianPage: React.FC = () => {
           />
         </section>
 
-        {/* BOTTOM HALF: TASK LIST (40% Viewport Height) */}
+        {/* BOTTOM HALF: TASK LIST */}
         <section style={localStyles.tasksSection}>
-          <div style={localStyles.sectionHeader}>
-            <h3 className="text-heading" style={{ color: '#fff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 className="nature-huge-header" style={{ fontSize: '22px', margin: 0 }}>
               {selectedBuilding ? `Tugas di ${selectedBuilding}` : 'Semua Tugasmu'} ({filteredTasks.length})
             </h3>
             {selectedBuilding && (
               <button 
                 onClick={() => setSelectedBuilding(null)}
-                className="btn-glass"
+                className="nature-pill inactive"
                 style={{ padding: '6px 12px', fontSize: '11px' }}
               >
                 Lihat Semua
@@ -159,39 +158,43 @@ export const TechnicianPage: React.FC = () => {
           </div>
 
           {isLoading ? (
-            <div style={localStyles.loadingCenter}>
-              <div className="shimmer" style={{ width: '280px', height: '140px', borderRadius: '20px' }}></div>
-              <div className="shimmer" style={{ width: '280px', height: '140px', borderRadius: '20px' }}></div>
+            <div style={{ display: 'flex', gap: '16px', overflowX: 'hidden' }}>
+              <div style={{ background: '#D2DDD4', width: '280px', height: '140px', borderRadius: '32px' }}></div>
+              <div style={{ background: '#D2DDD4', width: '280px', height: '140px', borderRadius: '32px' }}></div>
             </div>
           ) : error ? (
-            <p style={{ color: 'var(--accent-rose)', fontSize: '14px' }}>{error}</p>
+            <p style={{ color: '#DC2626', fontSize: '14px', fontWeight: '700' }}>{error}</p>
           ) : filteredTasks.length === 0 ? (
-            <div style={localStyles.emptyCenter}>
+            <div style={{ textAlign: 'center', padding: '40px 0', backgroundColor: '#FFFFFF', borderRadius: '40px' }}>
               <span style={{ fontSize: '32px' }}>🎉</span>
-              <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', marginTop: '6px' }}>
+              <p style={{ color: '#68776B', fontSize: '14px', marginTop: '6px', fontWeight: '700', margin: 0 }}>
                 {selectedBuilding ? `Tidak ada tugas aktif di ${selectedBuilding}.` : 'Semua tugas selesai! Pekerjaan bagus.'}
               </p>
             </div>
           ) : (
-            <div className="swipe-container" style={localStyles.swipeContainer}>
+            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
               {filteredTasks.map(task => (
-                <div key={task.id} className="glass-card swipe-card" style={localStyles.taskCard}>
-                  <div style={localStyles.cardHeader}>
-                    <span style={localStyles.taskNumber}>{task.request_number}</span>
-                    <span className={`status-badge status-${task.status.toLowerCase().replace('_', '-')}`}>
-                      {task.status.replace('_', ' ')}
+                <div key={task.id} className="nature-main-card" style={{ flex: '0 0 280px', padding: '24px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#8E9A90', fontWeight: '800' }}>{task.request_number}</span>
+                    <span style={{ backgroundColor: '#101411', color: '#D4E875', fontSize: '10px', fontWeight: '800', padding: '4px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>
+                      {task.status}
                     </span>
                   </div>
 
-                  <h4 style={localStyles.taskTitle}>{task.title}</h4>
-                  <p style={localStyles.taskLocation}>📍 Lokasi: <strong>{task.location}</strong></p>
+                  <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#101411', margin: '0 0 8px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#56665A', margin: '0 0 16px 0' }}>📍 Lokasi: <strong>{task.location}</strong></p>
 
-                  <div style={localStyles.cardFooter}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Link to={`/requests/${task.id}`} style={{ textDecoration: 'none' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '800', color: '#101411', textDecoration: 'underline' }}>Detail Tiket</span>
+                    </Link>
+                    
                     {task.status === 'ASSIGNED' && (
                       <button 
                         onClick={() => handleStartTask(task.id)}
-                        className="btn-primary" 
-                        style={localStyles.actionBtn}
+                        className="nature-pill active" 
+                        style={{ padding: '8px 16px', fontSize: '12px' }}
                       >
                         Mulai →
                       </button>
@@ -199,14 +202,14 @@ export const TechnicianPage: React.FC = () => {
                     {task.status === 'IN_PROGRESS' && (
                       <button 
                         onClick={() => openResolvedModal(task.id)}
-                        className="btn-primary" 
-                        style={{ ...localStyles.actionBtn, background: 'linear-gradient(135deg, var(--status-resolved), var(--accent-teal))' }}
+                        className="nature-pill active" 
+                        style={{ padding: '8px 16px', fontSize: '12px', backgroundColor: '#047857' }}
                       >
                         Selesai
                       </button>
                     )}
                     {['RESOLVED', 'CLOSED'].includes(task.status) && (
-                      <span style={localStyles.doneText}>Selesai dikerjakan ✓</span>
+                      <span style={{ fontSize: '12px', color: '#047857', fontWeight: '800' }}>Selesai ✓</span>
                     )}
                   </div>
                 </div>
@@ -217,17 +220,17 @@ export const TechnicianPage: React.FC = () => {
 
       </div>
 
-      {/* MODAL PROMPT RESOLVED TASK (IN_PROGRESS -> RESOLVED) */}
+      {/* MODAL PROMPT RESOLVED TASK */}
       {showResolvedModal && (
         <div style={localStyles.modalOverlay}>
-          <div className="glass-card-strong animate-in" style={localStyles.modalCard}>
-            <h3 className="text-heading" style={{ color: '#fff', marginBottom: '14px' }}>Penyelesaian Perbaikan</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px' }}>
+          <div className="nature-main-card" style={{ width: '100%', maxWidth: '440px' }}>
+            <h3 style={{ fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Penyelesaian Perbaikan</h3>
+            <p style={{ color: '#68776B', fontSize: '13px', marginBottom: '20px' }}>
               Tulis laporan singkat/catatan teknis mengenai hasil tindakan perbaikan fisik yang telah Anda selesaikan.
             </p>
 
             {submitError && (
-              <p style={{ color: 'var(--accent-rose)', fontSize: '12.5px', marginBottom: '12px' }}>⚠️ {submitError}</p>
+              <p style={{ color: '#DC2626', fontSize: '13px', fontWeight: '700', marginBottom: '12px' }}>⚠️ {submitError}</p>
             )}
 
             <form onSubmit={handleCompleteTaskSubmit}>
@@ -236,23 +239,37 @@ export const TechnicianPage: React.FC = () => {
                 value={resolutionNotes}
                 onChange={(e) => setResolutionNotes(e.target.value)}
                 disabled={isSubmitting}
-                className="neu-input"
-                style={{ minHeight: '110px', resize: 'vertical', marginBottom: '24px' }}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '24px',
+                  border: '2px solid #C0D0C4',
+                  backgroundColor: '#FFFFFF',
+                  color: '#101411',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  outline: 'none',
+                  minHeight: '110px',
+                  resize: 'vertical',
+                  marginBottom: '24px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit'
+                }}
                 required
               />
 
-              <div style={localStyles.modalButtons}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button 
                   type="button" 
                   onClick={() => setShowResolvedModal(false)}
-                  className="btn-glass"
+                  className="nature-pill inactive"
                   disabled={isSubmitting}
                 >
                   Batal
                 </button>
                 <button 
                   type="submit" 
-                  className="btn-primary"
+                  className="nature-pill active"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Selesai'}
@@ -267,173 +284,39 @@ export const TechnicianPage: React.FC = () => {
   );
 };
 
-// Local Styles
 const localStyles: Record<string, React.CSSProperties> = {
   layoutWrapper: {
     minHeight: '100vh',
-    backgroundColor: '#0A090F',
     display: 'flex',
     flexDirection: 'column',
-    position: 'relative',
-    zIndex: 1,
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '14px 24px',
-    borderRadius: '0 0 20px 20px',
-    borderTop: 'none',
-    borderLeft: 'none',
-    borderRight: 'none',
-    position: 'sticky',
-    top: 0,
-    zIndex: 50,
-  },
-  headerBrand: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    color: '#fff',
-  },
-  headerTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '16px',
-    fontWeight: '700',
-    margin: 0,
-    lineHeight: '1.2',
-  },
-  headerSubtitle: {
-    fontSize: '11px',
-    color: 'var(--text-muted)',
-    margin: 0,
-  },
-  headerMeta: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  userBadge: {
-    fontSize: '12px',
-    color: '#cbd5e1',
-    fontWeight: '600',
-  },
-  logoutBtn: {
-    background: 'none',
-    border: 'none',
-    fontSize: '18px',
-    cursor: 'pointer',
-    padding: '4px',
+    boxSizing: 'border-box',
   },
   contentContainer: {
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
-    padding: '16px 20px 80px',
-    gap: '16px',
+    padding: '24px',
+    gap: '24px',
+    boxSizing: 'border-box',
   },
   mapSection: {
-    flex: '6 0 260px',
-    minHeight: '260px',
+    flex: '6 0 280px',
+    minHeight: '280px',
   },
   tasksSection: {
     flex: '4 0 220px',
     display: 'flex',
     flexDirection: 'column',
   },
-  sectionHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '12px',
-  },
-  swipeContainer: {
-    display: 'flex',
-    gap: '14px',
-    overflowX: 'auto',
-    paddingBottom: '8px',
-  },
-  taskCard: {
-    flex: '0 0 260px',
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    minHeight: '150px',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  taskNumber: {
-    fontFamily: 'monospace',
-    fontSize: '11px',
-    color: 'var(--accent-amber)',
-    fontWeight: '600',
-  },
-  taskTitle: {
-    fontSize: '14.5px',
-    fontWeight: '600',
-    color: '#f8fafc',
-    margin: '12px 0 6px 0',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  taskLocation: {
-    fontSize: '12.5px',
-    color: 'var(--text-secondary)',
-    margin: '0 0 16px 0',
-  },
-  cardFooter: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  actionBtn: {
-    padding: '8px 18px',
-    fontSize: '13px',
-    borderRadius: '12px',
-  },
-  doneText: {
-    fontSize: '12.5px',
-    color: 'var(--status-resolved)',
-    fontWeight: '600',
-  },
-  loadingCenter: {
-    display: 'flex',
-    gap: '16px',
-    overflowX: 'hidden',
-  },
-  emptyCenter: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '30px 0',
-    textAlign: 'center',
-  },
   modalOverlay: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    backdropFilter: 'blur(8px)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 200,
     padding: '20px',
   },
-  modalCard: {
-    width: '100%',
-    maxWidth: '440px',
-    padding: '32px 24px',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.7)',
-  },
-  modalButtons: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '12px',
-  },
 };
+

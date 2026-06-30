@@ -1,14 +1,13 @@
 // src/pages/HomePage.tsx
-// Halaman Utama Pelapor Premium (FR-01, FR-02, FR-10) dengan visualisasi Liquid Glass
+// Halaman Utama Pelapor Premium dengan visualisasi flat solid Nature Power (Pages 1-3)
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ThemeToggle } from '../components/ThemeToggle';
 import * as api from '../services/api';
 
 export const HomePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [requests, setRequests] = useState<any[]>([]);
@@ -19,15 +18,11 @@ export const HomePage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
 
-  // Navigasi aktif di sidebar
-  const [activeTab, setActiveTab] = useState('home');
-
   useEffect(() => {
     async function fetchRequests() {
       setIsLoading(true);
       setError(null);
       try {
-        // GET /api/requests (otomatis memfilter laporan milik user login dari backend)
         const data = await api.listRequests();
         setRequests(data);
       } catch (err: any) {
@@ -39,17 +34,6 @@ export const HomePage: React.FC = () => {
     }
     fetchRequests();
   }, []);
-
-  const handleLogout = async () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar?')) {
-      try {
-        await logout();
-        navigate('/login');
-      } catch (err) {
-        console.error('Logout error:', err);
-      }
-    }
-  };
 
   // Format Tanggal Relatif
   const formatRelativeTime = (dateStr: string) => {
@@ -77,491 +61,244 @@ export const HomePage: React.FC = () => {
     return matchesStatus && matchesKeyword;
   });
 
-  // Hitung Agregasi Statistik Ringkas
+  // Agregasi Statistik Ringkas
   const totalLaporanku = requests.length;
   const prosesCount = requests.filter(req => !['RESOLVED', 'CLOSED'].includes(req.status)).length;
   const selesaiCount = requests.filter(req => ['RESOLVED', 'CLOSED'].includes(req.status)).length;
 
   return (
-    <div style={localStyles.layoutContainer}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
-      {/* SIDEBAR NAVIGATION (Desktop Only) */}
-      <aside className="sidebar">
-        <div style={localStyles.sidebarHeader}>
-          <span style={localStyles.sidebarLogo}>🏛</span>
-          <div>
-            <h2 style={localStyles.sidebarTitle}>UNKLAB</h2>
-            <p style={localStyles.sidebarSubtitle}>Campus Services</p>
-          </div>
+      {/* 1. HEADER WELCOME SECTION */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <span className="nature-micro-label">LAYANAN SARPRAS UNIVERSITAS</span>
+          <h1 className="nature-huge-header">Halo, {user?.name} 👋</h1>
+          <p style={{ fontSize: '15px', color: '#68776B', marginTop: '8px', margin: 0 }}>
+            Pantau laporan fasilitas kampus dan laporkan masalah baru dengan cepat.
+          </p>
         </div>
+      </header>
 
-        <nav style={localStyles.sidebarNav}>
-          <button 
-            onClick={() => setActiveTab('home')} 
-            className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
-          >
-            <span>🏠</span> Beranda
-          </button>
-          <Link to="/create" className="nav-item">
-            <span>➕</span> Buat Laporan
-          </Link>
-          <button 
-            onClick={() => setActiveTab('reports')} 
-            className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
-          >
-            <span>📋</span> Laporan Saya
-          </button>
-        </nav>
-
-        <div style={localStyles.sidebarFooter}>
-          <div style={localStyles.userInfo}>
-            <p style={localStyles.userName}>{user?.name}</p>
-            <p style={localStyles.userRole}>{user?.role}</p>
-          </div>
-          <div style={localStyles.footerActions}>
-            <ThemeToggle />
-            <button onClick={handleLogout} style={localStyles.logoutButton} title="Logout">
-              🚪 Keluar
-            </button>
-          </div>
+      {error && (
+        <div style={{ backgroundColor: '#FEE2E2', color: '#991B1B', padding: '16px 24px', borderRadius: '24px', fontWeight: '700', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span>⚠️</span> {error}
         </div>
-      </aside>
+      )}
 
-      {/* MOBILE BOTTOM NAVBAR (Mobile Only) */}
-      <nav className="navbar">
-        <button onClick={() => setActiveTab('home')} className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}>🏠</button>
-        <Link to="/create" className="nav-item">➕</Link>
-        <button onClick={() => setActiveTab('reports')} className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}>📋</button>
-        <button onClick={handleLogout} className="nav-item">🚪</button>
-      </nav>
-
-      {/* MAIN CONTAINER CONTENT */}
-      <main className="main-content" style={localStyles.mainContent}>
-        
-        {/* Header Section */}
-        <header style={localStyles.contentHeader}>
-          <div>
-            <h1 className="text-display" style={localStyles.welcomeText}>
-              Halo, {user?.name} 👋
-            </h1>
-            <p style={localStyles.dateText}>Ada keluhan mengenai fasilitas di kampus hari ini?</p>
-          </div>
-        </header>
-
-        {error && (
-          <div className="glass-card" style={localStyles.errorCard}>
-            <span style={{ fontSize: '20px' }}>⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-
-        {isLoading ? (
-          <div style={localStyles.loadingCenter}>
-            <div className="shimmer" style={{ width: '100%', height: '180px', borderRadius: '28px', marginBottom: '24px' }}></div>
-            <div className="shimmer" style={{ width: '100%', height: '300px', borderRadius: '28px' }}></div>
-          </div>
-        ) : (
-          <div className="animate-in">
+      {isLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ background: '#D2DDD4', height: '360px', borderRadius: '40px', width: '100%' }}></div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          
+          {/* GRID LAYOUT (BENTO BOX GRID SIMULATED IN CSS GRID) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '24px' }}>
             
-            {/* HERO SECTION */}
-            <section className="glass-card-strong animate-in" style={localStyles.heroCard}>
-              <div style={localStyles.heroInfo}>
-                <h2 style={localStyles.heroTitle}>Ada Masalah Fasilitas?</h2>
-                <p style={localStyles.heroText}>
-                  Laporkan setiap kerusakan sarana dan prasarana kampus UNKLAB di sini. Tim sarpras kami siap menindaklanjutinya dengan cepat demi kenyamanan studi Anda.
-                </p>
-                <Link to="/create" style={{ textDecoration: 'none' }}>
-                  <button className="btn-primary" style={localStyles.heroBtn}>
-                    <span>➕</span> Buat Laporan Baru
-                  </button>
-                </Link>
-              </div>
-              <div style={localStyles.heroArt}>🏛</div>
-            </section>
-
-            {/* STAT RINGKASAN (Swipeable di Mobile) */}
-            <div className="swipe-container" style={localStyles.statsGrid}>
-              <div className="glass-card swipe-card" style={localStyles.statCard}>
-                <span style={localStyles.statIcon}>📋</span>
-                <p style={localStyles.statNumber}>{totalLaporanku}</p>
-                <p style={localStyles.statLabel}>Total Laporanku</p>
-              </div>
-              <div className="glass-card swipe-card" style={localStyles.statCard}>
-                <span style={localStyles.statIcon}>⏳</span>
-                <p style={localStyles.statNumber}>{prosesCount}</p>
-                <p style={localStyles.statLabel}>Dalam Proses</p>
-              </div>
-              <div className="glass-card swipe-card" style={localStyles.statCard}>
-                <span style={localStyles.statIcon}>✅</span>
-                <p style={localStyles.statNumber}>{selesaiCount}</p>
-                <p style={localStyles.statLabel}>Selesai Diperbaiki</p>
+            {/* WIDGET 1: NATURE HERO IMAGE CARD (Span 8) */}
+            {/* WIDGET 1: NATURE HERO IMAGE CARD (Span 8) */}
+            <div className="nature-grid-8-col">
+              <div 
+                className="nature-image-card" 
+                style={{ 
+                  backgroundImage: 'url("https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop")' 
+                }}
+              >
+                <div className="nature-image-card-overlay"></div>
+                <div className="nature-image-card-content">
+                  <span className="nature-micro-label" style={{ color: '#D4E875' }}>KEGIATAN KAMPUS</span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800', margin: '4px 0 12px 0', letterSpacing: '-0.02em', color: '#FFFFFF', lineHeight: 1.2 }}>
+                    Weekend Campus Cleanup 2026
+                  </h2>
+                  <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.85)', marginBottom: '24px' }}>
+                    Sabtu, 4 Juli • Kampus UNKLAB Airmadidi • 07:00 WITA. Mari jaga kebersihan lingkungan kelas dan asrama.
+                  </p>
+                  <Link to="/create" style={{ textDecoration: 'none' }}>
+                    <button className="nature-pill active">
+                      <span>➕</span> Buat Laporan Baru <span className="pill-dot"></span>
+                    </button>
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* LAPORAN TERBARUKU LIST */}
-            <section className="glass-card" style={localStyles.listCard}>
-              <div style={localStyles.listHeader}>
-                <h3 className="text-heading">Riwayat Laporanku</h3>
-                <span style={localStyles.countBadge}>{filteredRequests.length} Tiket</span>
-              </div>
+            {/* WIDGET 2: STATS SUMMARY WIDGET (Span 4) */}
+            <div className="nature-grid-4-col">
+              <div className="nature-main-card" style={{ height: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+                <div>
+                  <span className="nature-micro-label">STATUS TIKET</span>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', margin: '4px 0 24px 0', letterSpacing: '-0.02em' }}>Ringkasan Laporan</h3>
+                </div>
 
-              {/* Filter & Search Bar */}
-              <div style={localStyles.filterBar}>
-                <input
-                  type="text"
-                  placeholder="Cari laporan..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="neu-input"
-                  style={{ flex: 2, minWidth: '200px' }}
-                />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="neu-input"
-                  style={{ flex: 1, minWidth: '140px', cursor: 'pointer' }}
-                >
-                  <option value="">Semua Status</option>
-                  <option value="SUBMITTED">SUBMITTED</option>
-                  <option value="UNDER_REVIEW">UNDER REVIEW</option>
-                  <option value="ASSIGNED">ASSIGNED</option>
-                  <option value="IN_PROGRESS">IN PROGRESS</option>
-                  <option value="RESOLVED">RESOLVED</option>
-                  <option value="CLOSED">CLOSED</option>
-                </select>
-              </div>
-
-              {/* Laporan Cards */}
-              <div style={localStyles.reportsContainer}>
-                {filteredRequests.length === 0 ? (
-                  <div style={localStyles.emptyStateContainer}>
-                    <span style={{ fontSize: '48px', marginBottom: '14px' }}>📂</span>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>
-                      Belum ada laporan keluhan yang tersimpan.
-                    </p>
-                    <Link to="/create" style={{ textDecoration: 'none' }}>
-                      <button className="btn-glass">
-                        Buat Laporan Pertamamu
-                      </button>
-                    </Link>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F3F7F4', padding: '16px 20px', borderRadius: '24px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#56665A' }}>📋 Total Tiket</span>
+                    <strong style={{ fontSize: '20px', fontWeight: '800' }}>{totalLaporanku}</strong>
                   </div>
-                ) : (
-                  filteredRequests.map((req, index) => (
-                    <div 
-                      key={req.id} 
-                      onClick={() => navigate(`/requests/${req.id}`)}
-                      className="glass-card"
-                      style={{ 
-                        ...localStyles.reportCard, 
-                        animationDelay: `${index * 0.1}s` 
-                      }}
-                    >
-                      <div style={localStyles.reportCardHeader}>
-                        <div>
-                          <span style={localStyles.reportNumber}>{req.request_number}</span>
-                          <h4 style={localStyles.reportTitle}>{req.title}</h4>
-                        </div>
-                        <span className={`status-badge status-${req.status.toLowerCase().replace('_', '-')}`}>
-                          {req.status.replace('_', ' ')}
-                        </span>
-                      </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FEF3C7', padding: '16px 20px', borderRadius: '24px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#B45309' }}>⏳ Dalam Proses</span>
+                    <strong style={{ fontSize: '20px', fontWeight: '800', color: '#B45309' }}>{prosesCount}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#D1FAE5', padding: '16px 20px', borderRadius: '24px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#047857' }}>✅ Selesai Diperbaiki</span>
+                    <strong style={{ fontSize: '20px', fontWeight: '800', color: '#047857' }}>{selesaiCount}</strong>
+                  </div>
+                </div>
 
-                      <div style={localStyles.reportCardBody}>
-                        <p style={localStyles.reportDesc}>{req.description}</p>
-                      </div>
-
-                      <div style={localStyles.reportCardFooter}>
-                        <div style={localStyles.reportMeta}>
-                          <span>📍 {req.location}</span>
-                          <span style={localStyles.metaDivider}>•</span>
-                          <span>🔧 {req.category}</span>
-                          <span style={localStyles.metaDivider}>•</span>
-                          <span>🕒 {formatRelativeTime(req.created_at)}</span>
-                        </div>
-                        <button className="btn-glass" style={localStyles.detailBtn}>
-                          Lihat Detail →
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
+                <div style={{ fontSize: '12px', color: '#8E9A90', textAlign: 'center', marginTop: '16px' }}>
+                  Pembaruan data otomatis D1 Database
+                </div>
               </div>
-            </section>
+            </div>
 
           </div>
-        )}
-      </main>
+
+          {/* 3. REPORT LISTING SECTION */}
+          <div className="nature-main-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <span className="nature-micro-label">RIWAYAT AKTIVITAS</span>
+                <h3 style={{ fontSize: '24px', fontWeight: '800', margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>
+                  Laporan Saya ({filteredRequests.length})
+                </h3>
+              </div>
+              
+              <input
+                type="text"
+                placeholder="Cari kata kunci laporan..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '9999px',
+                  border: '2px solid #C0D0C4',
+                  backgroundColor: '#FFFFFF',
+                  color: '#101411',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  outline: 'none',
+                  width: '100%',
+                  maxWidth: '300px',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Filter Pills */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '32px' }}>
+              {[
+                { val: '', label: 'Semua Status' },
+                { val: 'SUBMITTED', label: 'SUBMITTED' },
+                { val: 'UNDER_REVIEW', label: 'UNDER REVIEW' },
+                { val: 'ASSIGNED', label: 'ASSIGNED' },
+                { val: 'IN_PROGRESS', label: 'IN PROGRESS' },
+                { val: 'RESOLVED', label: 'RESOLVED' },
+                { val: 'CLOSED', label: 'CLOSED' }
+              ].map(item => {
+                const active = statusFilter === item.val;
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => setStatusFilter(item.val)}
+                    className={`nature-pill ${active ? 'active' : 'inactive'}`}
+                  >
+                    {active && <span className="pill-dot"></span>}
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Laporan Card Items */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {filteredRequests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', backgroundColor: '#F3F7F4', borderRadius: '32px' }}>
+                  <span style={{ fontSize: '48px' }}>📂</span>
+                  <p style={{ color: '#68776B', fontWeight: '700', margin: '16px 0 24px 0' }}>
+                    Belum ada laporan keluhan yang sesuai filter Anda.
+                  </p>
+                  <Link to="/create" style={{ textDecoration: 'none' }}>
+                    <button className="nature-pill active">
+                      Buat Laporan Pertama <span className="pill-dot"></span>
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                filteredRequests.map(req => (
+                  <div 
+                    key={req.id} 
+                    onClick={() => navigate(`/requests/${req.id}`)}
+                    style={{ 
+                      cursor: 'pointer',
+                      backgroundColor: '#F3F7F4',
+                      borderRadius: '24px',
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '16px',
+                      transition: 'transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: '700', color: '#8E9A90' }}>
+                          {req.request_number}
+                        </span>
+                        <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#101411', margin: '4px 0 0 0' }}>
+                          {req.title}
+                        </h4>
+                      </div>
+                      
+                      {/* Active Status pill display */}
+                      <span 
+                        style={{ 
+                          backgroundColor: '#101411', 
+                          color: '#D4E875', 
+                          fontSize: '11px', 
+                          fontWeight: '800', 
+                          padding: '8px 16px', 
+                          borderRadius: '9999px',
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        {req.status.replace('_', ' ')}
+                      </span>
+                    </div>
+
+                    <p style={{ fontSize: '14px', color: '#56665A', lineHeight: '1.6', margin: 0 }}>
+                      {req.description}
+                    </p>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderTop: '1px solid #E0E8E1', paddingTop: '16px' }}>
+                      <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontWeight: '700', color: '#68776B', flexWrap: 'wrap' }}>
+                        <span>📍 {req.location}</span>
+                        <span>•</span>
+                        <span>🔧 {req.category}</span>
+                        <span>•</span>
+                        <span>🕒 {formatRelativeTime(req.created_at)}</span>
+                      </div>
+                      
+                      <button 
+                        className="nature-pill active" 
+                        style={{ padding: '8px 16px', fontSize: '12px' }}
+                      >
+                        Detail →
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 };
 
-// Local Styles
-const localStyles: Record<string, React.CSSProperties> = {
-  layoutContainer: {
-    display: 'flex',
-    minHeight: '100vh',
-    backgroundColor: 'var(--bg-primary)',
-    position: 'relative',
-    zIndex: 1,
-  },
-  sidebarHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '32px',
-    padding: '0 8px',
-  },
-  sidebarLogo: {
-    fontSize: '32px',
-    color: 'var(--accent-purple)',
-  },
-  sidebarTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '18px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-    lineHeight: '1.2',
-  },
-  sidebarSubtitle: {
-    fontSize: '11px',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    margin: 0,
-  },
-  sidebarNav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    flex: 1,
-  },
-  sidebarFooter: {
-    marginTop: 'auto',
-    borderTop: '1px solid var(--border-subtle)',
-    paddingTop: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  userInfo: {
-    padding: '0 8px',
-  },
-  userName: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  userRole: {
-    fontSize: '11px',
-    color: 'var(--accent-purple)',
-    fontWeight: '500',
-    margin: '2px 0 0 0',
-  },
-  footerActions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoutButton: {
-    background: 'none',
-    border: 'none',
-    color: 'var(--accent-rose)',
-    fontSize: '13px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    padding: '6px 12px',
-  },
-  mainContent: {
-    width: '100%',
-  },
-  contentHeader: {
-    marginBottom: '24px',
-  },
-  welcomeText: {
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  dateText: {
-    fontSize: '14px',
-    color: 'var(--text-secondary)',
-    marginTop: '4px',
-  },
-  errorCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '16px 24px',
-    borderLeft: '4px solid var(--accent-rose)',
-    color: 'var(--accent-rose)',
-    marginBottom: '24px',
-  },
-  loadingCenter: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    width: '100%',
-  },
-  heroCard: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '36px 32px',
-    borderRadius: '28px',
-    marginBottom: '28px',
-    background: 'linear-gradient(135deg, var(--bg-glass-strong), rgba(139, 92, 246, 0.05))',
-    overflow: 'hidden',
-  },
-  heroInfo: {
-    flex: 3,
-  },
-  heroTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '24px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  heroText: {
-    fontSize: '14px',
-    color: 'var(--text-secondary)',
-    lineHeight: '1.6',
-    margin: '10px 0 24px 0',
-    maxWidth: '540px',
-  },
-  heroBtn: {
-    padding: '12px 24px',
-  },
-  heroArt: {
-    flex: 1,
-    fontSize: '100px',
-    textAlign: 'right',
-    opacity: 0.15,
-    userSelect: 'none',
-    pointerEvents: 'none',
-  },
-  statsGrid: {
-    display: 'flex',
-    gap: '16px',
-    marginBottom: '28px',
-    paddingBottom: '8px',
-  },
-  statCard: {
-    flex: '1 0 160px',
-    padding: '20px',
-    borderRadius: '20px',
-  },
-  statIcon: {
-    fontSize: '24px',
-    display: 'block',
-    marginBottom: '10px',
-  },
-  statNumber: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '28px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  statLabel: {
-    fontSize: '12px',
-    color: 'var(--text-secondary)',
-    marginTop: '4px',
-    margin: 0,
-  },
-  listCard: {
-    padding: '28px 24px',
-  },
-  listHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  countBadge: {
-    fontSize: '11px',
-    fontWeight: '600',
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    color: 'var(--accent-purple)',
-    padding: '4px 10px',
-    borderRadius: '12px',
-  },
-  filterBar: {
-    display: 'flex',
-    gap: '12px',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-  },
-  reportsContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  reportCard: {
-    padding: '20px 24px',
-    cursor: 'pointer',
-    opacity: 0,
-    transform: 'translateY(16px)',
-    animation: 'fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards',
-  },
-  reportCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: '12px',
-  },
-  reportNumber: {
-    fontFamily: 'monospace',
-    fontSize: '11.5px',
-    color: 'var(--text-muted)',
-  },
-  reportTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: 'var(--text-primary)',
-    margin: '4px 0 0 0',
-  },
-  reportCardBody: {
-    margin: '12px 0 16px 0',
-  },
-  reportDesc: {
-    fontSize: '13.5px',
-    color: 'var(--text-secondary)',
-    lineHeight: '1.5',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden',
-  },
-  reportCardFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '12px',
-  },
-  reportMeta: {
-    display: 'flex',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '8px',
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-  },
-  metaDivider: {
-    color: 'var(--border-subtle)',
-  },
-  detailBtn: {
-    padding: '6px 12px',
-    fontSize: '12px',
-  },
-  emptyStateContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    textAlign: 'center',
-  },
-};

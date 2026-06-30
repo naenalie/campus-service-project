@@ -1,10 +1,9 @@
 // src/pages/RegisterPage.tsx
-// Halaman Registrasi Premium (CR-02) berbasis Liquid Glass + Glassmorphism + Neumorphism
+// Halaman Registrasi Premium berbasis flat solid Nature Power design (Pages 1-3)
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ThemeToggle } from '../components/ThemeToggle';
 
 export const RegisterPage: React.FC = () => {
   const { register, isLoading } = useAuth();
@@ -27,7 +26,6 @@ export const RegisterPage: React.FC = () => {
     setSuccess(null);
     setShakeError(false);
 
-    // Validasi input di Frontend
     if (!name.trim() || !email.trim() || !password || !confirmPassword) {
       triggerError('Semua kolom wajib diisi.');
       return;
@@ -47,14 +45,11 @@ export const RegisterPage: React.FC = () => {
     try {
       await register(name.trim(), email.trim(), password);
       setSuccess('Registrasi akun berhasil! Silakan masuk...');
-      
-      // Reset input form
       setName('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
 
-      // Redirect ke login setelah 2 detik
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -74,161 +69,138 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div style={localStyles.pageContainer}>
-      {/* Theme Toggle di Pojok Kanan Atas */}
-      <div style={localStyles.toggleWrapper}>
-        <ThemeToggle />
-      </div>
-
-      {/* Main Register Layout */}
-      <div className="animate-in" style={localStyles.contentWrapper}>
-        
-        {/* Logo & Judul Instansi */}
-        <div style={localStyles.logoContainer}>
-          <div style={localStyles.logoIconWrapper}>
-            <span style={localStyles.logoIcon}>📝</span>
-          </div>
-          <h1 style={localStyles.mainTitle}>Daftar Akun</h1>
-          <p style={localStyles.captionText}>Bergabunglah dengan Sistem Layanan Kampus UNKLAB</p>
+      
+      <div 
+        className={`nature-main-card ${shakeError ? 'error-shake' : ''}`}
+        style={{
+          width: '100%',
+          maxWidth: '480px',
+          padding: '40px',
+          backgroundColor: '#FFFFFF',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>📝</div>
+          <span className="nature-micro-label">REGISTRASI PENGGUNA</span>
+          <h1 className="nature-huge-header" style={{ fontSize: '32px' }}>Daftar Akun</h1>
+          <p style={{ fontSize: '13px', color: '#68776B', marginTop: '6px' }}>
+            Bergabunglah dengan Layanan Kampus UNKLAB
+          </p>
         </div>
 
-        {/* Card Form Register */}
-        <div 
-          className={`glass-card-strong ${shakeError ? 'error-shake' : ''}`} 
-          style={localStyles.registerCard}
-        >
-          {error && (
-            <div style={localStyles.errorAlert}>
-              <span>⚠️</span>
-              <span>{error}</span>
-            </div>
-          )}
+        {error && (
+          <div style={localStyles.errorAlert}>
+            <span>⚠️</span> {error}
+          </div>
+        )}
 
-          {success && (
-            <div style={localStyles.successAlert}>
-              <span>✅</span>
-              <span>{success}</span>
-            </div>
-          )}
+        {success && (
+          <div style={localStyles.successAlert}>
+            <span>✅</span> {success}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} style={localStyles.form}>
-            <div style={localStyles.formGroup}>
-              <label htmlFor="name" style={localStyles.inputLabel}>Nama Lengkap</label>
-              <input
-                type="text"
-                id="name"
-                placeholder="Gwen"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isSubmitting || isLoading}
-                className="neu-input"
-                required
-              />
-            </div>
+        <form onSubmit={handleSubmit} style={localStyles.form}>
+          <div style={localStyles.formGroup}>
+            <label htmlFor="name" style={localStyles.inputLabel}>Nama Lengkap</label>
+            <input
+              type="text"
+              id="name"
+              placeholder="Gwen"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={isSubmitting || isLoading}
+              style={localStyles.inputField}
+              required
+            />
+          </div>
 
-            <div style={localStyles.formGroup}>
-              <label htmlFor="email" style={localStyles.inputLabel}>Email Kampus</label>
-              <input
-                type="email"
-                id="email"
-                placeholder="gwen@unklab.ac.id"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting || isLoading}
-                className="neu-input"
-                required
-              />
-            </div>
+          <div style={localStyles.formGroup}>
+            <label htmlFor="email" style={localStyles.inputLabel}>Email Kampus</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="gwen@student.unklab.ac.id"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting || isLoading}
+              style={localStyles.inputField}
+              required
+            />
+          </div>
 
-            <div style={localStyles.formGroup}>
-              <label htmlFor="password" style={localStyles.inputLabel}>Password</label>
-              <div style={localStyles.passwordWrapper}>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting || isLoading}
-                  className="neu-input"
-                  style={{ paddingRight: '48px' }}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={localStyles.eyeButton}
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                >
-                  {showPassword ? '👁️' : '🔒'}
-                </button>
-              </div>
-            </div>
-
-            <div style={localStyles.formGroup}>
-              <label htmlFor="confirmPassword" style={localStyles.inputLabel}>Konfirmasi Password</label>
+          <div style={localStyles.formGroup}>
+            <label htmlFor="password" style={localStyles.inputLabel}>Password</label>
+            <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
-                id="confirmPassword"
+                id="password"
                 placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={isSubmitting || isLoading}
-                className="neu-input"
+                style={{ ...localStyles.inputField, paddingRight: '48px' }}
                 required
               />
-            </div>
-
-            <div style={localStyles.infoBox}>
-              <span style={localStyles.infoIcon}>💡</span>
-              <span style={localStyles.infoText}>
-                Akun baru otomatis terdaftar sebagai peran **Pelapor** (Mahasiswa / Staf Kampus).
-              </span>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting || isLoading}
-              className="btn-primary"
-              style={{ width: '100%', marginTop: '6px' }}
-            >
-              {isSubmitting ? (
-                <>
-                  <div style={localStyles.spinnerMini}></div>
-                  <span>Membuat Akun...</span>
-                </>
-              ) : (
-                'Daftar Sekarang'
-              )}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div style={localStyles.dividerContainer}>
-            <div style={localStyles.dividerLine}></div>
-            <span style={localStyles.dividerText}>atau</span>
-            <div style={localStyles.dividerLine}></div>
-          </div>
-
-          {/* Link Kembali ke Login */}
-          <div style={localStyles.loginLinkWrapper}>
-            <p style={localStyles.loginText}>Sudah memiliki akun?</p>
-            <Link to="/login" style={{ textDecoration: 'none' }}>
-              <button className="btn-glass" style={{ width: '100%' }}>
-                Login di sini
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={localStyles.eyeButton}
+                tabIndex={-1}
+              >
+                {showPassword ? '👁️' : '🔒'}
               </button>
-            </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <p style={localStyles.footerText}>© 2026 UNKLAB Campus Services</p>
+          <div style={localStyles.formGroup}>
+            <label htmlFor="confirmPassword" style={localStyles.inputLabel}>Konfirmasi Password</label>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={isSubmitting || isLoading}
+              style={localStyles.inputField}
+              required
+            />
+          </div>
+
+          <div style={localStyles.infoBox}>
+            <span style={{ fontSize: '16px' }}>💡</span>
+            <span style={{ fontSize: '12px', color: '#56665A', fontWeight: '600' }}>
+              Akun baru otomatis terdaftar sebagai peran **Pelapor** (Mahasiswa / Staf Kampus).
+            </span>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || isLoading}
+            className="nature-pill active"
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '14px', marginTop: '12px' }}
+          >
+            {isSubmitting ? 'Membuat Akun...' : 'Daftar Sekarang'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: '24px', textAlign: 'center', borderTop: '1px solid #E0E8E1', paddingTop: '20px' }}>
+          <p style={{ fontSize: '13px', color: '#68776B', marginBottom: '12px' }}>Sudah memiliki akun?</p>
+          <Link to="/login" style={{ textDecoration: 'none' }}>
+            <button className="nature-pill inactive" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              Login di sini
+            </button>
+          </Link>
+        </div>
       </div>
+
+      <p style={{ fontSize: '12px', color: '#68776B', marginTop: '32px', fontWeight: '700' }}>
+        © 2026 UNKLAB Campus Services
+      </p>
     </div>
   );
 };
 
-// Local inline-styles (senada dengan LoginPage)
 const localStyles: Record<string, React.CSSProperties> = {
   pageContainer: {
     display: 'flex',
@@ -236,85 +208,34 @@ const localStyles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    width: '100vw',
-    position: 'relative',
+    width: '100%',
+    backgroundColor: 'transparent',
     padding: '24px',
-    zIndex: 1,
-  },
-  toggleWrapper: {
-    position: 'absolute',
-    top: '24px',
-    right: '24px',
-    zIndex: 10,
-  },
-  contentWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: '430px',
-  },
-  logoContainer: {
-    textAlign: 'center',
-    marginBottom: '24px',
-  },
-  logoIconWrapper: {
-    width: '60px',
-    height: '60px',
-    borderRadius: '18px',
-    background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-teal))',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 8px 24px rgba(139, 92, 246, 0.25)',
-    marginBottom: '14px',
-  },
-  logoIcon: {
-    fontSize: '30px',
-    color: '#fff',
-  },
-  mainTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '26px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: '0',
-    lineHeight: '1.2',
-  },
-  captionText: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    margin: '6px 0 0 0',
-  },
-  registerCard: {
-    width: '100%',
-    padding: '32px 24px',
+    boxSizing: 'border-box',
   },
   errorAlert: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-    border: '1px solid rgba(244, 63, 94, 0.25)',
-    borderRadius: '12px',
+    backgroundColor: '#FEE2E2',
+    borderRadius: '16px',
     padding: '12px 16px',
-    color: 'var(--accent-rose)',
+    color: '#991B1B',
     fontSize: '13.5px',
-    marginBottom: '20px',
-    lineHeight: '1.4',
+    fontWeight: '700',
+    marginBottom: '16px',
   },
   successAlert: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)', // Emerald subtle
-    border: '1px solid rgba(16, 185, 129, 0.25)',
-    borderRadius: '12px',
+    backgroundColor: '#D1FAE5',
+    borderRadius: '16px',
     padding: '12px 16px',
-    color: 'var(--status-resolved)',
+    color: '#047857',
     fontSize: '13.5px',
-    marginBottom: '20px',
-    lineHeight: '1.4',
+    fontWeight: '700',
+    marginBottom: '16px',
   },
   form: {
     display: 'flex',
@@ -327,24 +248,32 @@ const localStyles: Record<string, React.CSSProperties> = {
     gap: '6px',
   },
   inputLabel: {
-    fontSize: '12px',
-    fontWeight: '600',
-    color: 'var(--text-secondary)',
+    fontSize: '11px',
+    fontWeight: '800',
+    color: '#101411',
     textTransform: 'uppercase',
-    letterSpacing: '0.04em',
+    letterSpacing: '0.05em',
   },
-  passwordWrapper: {
-    position: 'relative',
+  inputField: {
+    padding: '12px 20px',
+    borderRadius: '9999px',
+    border: '2px solid #C0D0C4',
+    backgroundColor: '#FFFFFF',
+    color: '#101411',
+    fontWeight: '600',
+    fontSize: '14px',
+    outline: 'none',
     width: '100%',
+    boxSizing: 'border-box',
   },
   eyeButton: {
     position: 'absolute',
-    right: '14px',
+    right: '16px',
     top: '50%',
     transform: 'translateY(-50%)',
     background: 'none',
     border: 'none',
-    color: 'var(--text-muted)',
+    color: '#68776B',
     fontSize: '18px',
     cursor: 'pointer',
     padding: '4px',
@@ -356,57 +285,25 @@ const localStyles: Record<string, React.CSSProperties> = {
   infoBox: {
     display: 'flex',
     gap: '10px',
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    border: '1px solid rgba(59, 130, 246, 0.2)',
-    borderRadius: '12px',
-    padding: '10px 14px',
-  },
-  infoIcon: {
-    fontSize: '15px',
-  },
-  infoText: {
-    color: 'var(--text-secondary)',
-    fontSize: '12px',
-    lineHeight: '1.4',
-  },
-  spinnerMini: {
-    width: '18px',
-    height: '18px',
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTop: '2px solid white',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
-  dividerContainer: {
-    display: 'flex',
+    backgroundColor: '#E0E8E1',
+    borderRadius: '16px',
+    padding: '12px 16px',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-    margin: '20px 0',
-  },
-  dividerLine: {
-    flex: 1,
-    height: '1px',
-    backgroundColor: 'var(--border-subtle)',
-  },
-  dividerText: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-  },
-  loginLinkWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    alignItems: 'center',
-  },
-  loginText: {
-    fontSize: '13.5px',
-    color: 'var(--text-secondary)',
-  },
-  footerText: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    marginTop: '28px',
   },
 };
+
+if (typeof document !== 'undefined') {
+  const styleTag = document.createElement('style');
+  styleTag.innerHTML = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .error-shake {
+      animation: shake 0.15s ease-in-out 0s 2;
+    }
+  `;
+  document.head.appendChild(styleTag);
+}
+

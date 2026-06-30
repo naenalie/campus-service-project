@@ -143,3 +143,30 @@ export async function getTechnicians(): Promise<any[]> {
   });
   return handleResponse<any[]>(response);
 }
+
+export async function getAllUsers(): Promise<any[]> {
+  const response = await fetch(`${BASE_URL}/users`, {
+    method: 'GET',
+    headers: getHeaders()
+  });
+  return handleResponse<any[]>(response);
+}
+
+export async function updateUserRole(userId: string, role: string): Promise<any> {
+  const response = await fetch(`${BASE_URL}/users/${userId}/role`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ role })
+  });
+  return handleResponse<any>(response);
+}
+
+export async function updateUserStatus(userId: string, isActive: number): Promise<any> {
+  const response = await fetch(`${BASE_URL}/users/${userId}/status`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ is_active: isActive })
+  });
+  return handleResponse<any>(response);
+}
+

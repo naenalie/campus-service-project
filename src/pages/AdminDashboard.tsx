@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ThemeToggle } from '../components/ThemeToggle';
 import * as api from '../services/api';
 
 export const AdminDashboard: React.FC = () => {
@@ -13,6 +12,7 @@ export const AdminDashboard: React.FC = () => {
 
   const [summary, setSummary] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,26 +25,28 @@ export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // Fetch summary metrics & requests list
-        const [summaryData, requestsData] = await Promise.all([
-          api.getDashboardSummary(),
-          api.listRequests()
-        ]);
-        setSummary(summaryData);
-        setRequests(requestsData);
-      } catch (err: any) {
-        console.error('Gagal mengambil data dashboard:', err);
-        setError('Gagal memuat data dari server. Hubungi dukungan IT.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
     fetchData();
   }, []);
+
+  async function fetchData() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [summaryData, requestsData, usersData] = await Promise.all([
+        api.getDashboardSummary(),
+        api.listRequests(),
+        api.getAllUsers()
+      ]);
+      setSummary(summaryData);
+      setRequests(requestsData);
+      setUsers(usersData);
+    } catch (err: any) {
+      console.error('Gagal mengambil data dashboard:', err);
+      setError('Gagal memuat data dari server. Hubungi dukungan IT.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleLogout = async () => {
     if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
@@ -54,6 +56,29 @@ export const AdminDashboard: React.FC = () => {
       } catch (err) {
         console.error('Logout error:', err);
       }
+    }
+  };
+
+  const handleUserRoleChange = async (userId: string, newRole: string) => {
+    try {
+      await api.updateUserRole(userId, newRole);
+      // Refresh user data
+      const usersData = await api.getAllUsers();
+      setUsers(usersData);
+    } catch (err: any) {
+      alert(err.message || 'Gagal mengubah role user.');
+    }
+  };
+
+  const handleUserStatusToggle = async (userId: string, currentStatus: number) => {
+    try {
+      const targetStatus = currentStatus === 1 ? 0 : 1;
+      await api.updateUserStatus(userId, targetStatus);
+      // Refresh user data
+      const usersData = await api.getAllUsers();
+      setUsers(usersData);
+    } catch (err: any) {
+      alert(err.message || 'Gagal mengubah status user.');
     }
   };
 
@@ -70,147 +95,209 @@ export const AdminDashboard: React.FC = () => {
 
   // Urutan Status & Data Stat Cards
   const statsConfig = [
-    { key: 'SUBMITTED', label: 'Baru', color: 'var(--status-submitted)', icon: '🟣' },
-    { key: 'UNDER_REVIEW', label: 'Ditinjau', color: 'var(--status-review)', icon: '🔵' },
-    { key: 'ASSIGNED', label: 'Dialokasikan', color: 'var(--status-assigned)', icon: '🟢' },
-    { key: 'IN_PROGRESS', label: 'Perbaikan', color: 'var(--status-progress)', icon: '🟡' },
-    { key: 'RESOLVED', label: 'Selesai', color: 'var(--status-resolved)', icon: '🟢' }
+    { key: 'SUBMITTED', label: 'Baru', color: '#8B5CF6', icon: '🟣' },
+    { key: 'UNDER_REVIEW', label: 'Ditinjau', color: '#3B82F6', icon: '🔵' },
+    { key: 'ASSIGNED', label: 'Dialokasikan', color: '#10B981', icon: '🟢' },
+    { key: 'IN_PROGRESS', label: 'Perbaikan', color: '#F59E0B', icon: '🟡' },
+    { key: 'RESOLVED', label: 'Selesai', color: '#10B981', icon: '🟢' }
   ];
 
-  // Visual Bar Chart Logic
   const categoryCounts = summary?.by_category || {};
   const totalCategoryTickets = Object.values(categoryCounts).reduce((a: any, b: any) => a + b, 0) as number;
 
   return (
     <div style={localStyles.layoutContainer}>
       
-      {/* SIDEBAR NAVIGATION (Desktop Only - Hidden in Mobile via CSS media query) */}
-      <aside className="sidebar">
+      {/* SIDEBAR NAVIGATION */}
+      <aside style={localStyles.sidebar}>
         <div style={localStyles.sidebarHeader}>
-          <span style={localStyles.sidebarLogo}>🏛</span>
+          <span style={{ fontSize: '32px' }}>🏛</span>
           <div>
-            <h2 style={localStyles.sidebarTitle}>UNKLAB</h2>
-            <p style={localStyles.sidebarSubtitle}>Campus Services</p>
+            <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '18px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>UNKLAB</h2>
+            <p style={{ fontSize: '11px', color: '#8E9A90', textTransform: 'uppercase', fontWeight: '700', margin: 0 }}>Campus Services</p>
           </div>
         </div>
 
-        <nav style={localStyles.sidebarNav}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
           <button 
             onClick={() => setActiveTab('dashboard')} 
-            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+            className={`nature-pill ${activeTab === 'dashboard' ? 'active' : 'inactive'}`}
+            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'dashboard' ? '#101411' : '#FFFFFF' }}
           >
             <span>📊</span> Dashboard
           </button>
           <button 
             onClick={() => setActiveTab('requests')} 
-            className={`nav-item ${activeTab === 'requests' ? 'active' : ''}`}
+            className={`nature-pill ${activeTab === 'requests' ? 'active' : 'inactive'}`}
+            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'requests' ? '#101411' : '#FFFFFF' }}
           >
             <span>📋</span> Semua Laporan
           </button>
           <button 
             onClick={() => setActiveTab('users')} 
-            className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
+            className={`nature-pill ${activeTab === 'users' ? 'active' : 'inactive'}`}
+            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'users' ? '#101411' : '#FFFFFF' }}
           >
             <span>👥</span> Manajemen User
           </button>
         </nav>
 
-        <div style={localStyles.sidebarFooter}>
-          <div style={localStyles.userInfo}>
-            <p style={localStyles.userName}>{user?.name}</p>
-            <p style={localStyles.userRole}>{user?.role}</p>
+        <div style={{ marginTop: 'auto', borderTop: '1px solid #2B332E', paddingTop: '20px' }}>
+          <div style={{ padding: '0 8px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '14px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>{user?.name}</p>
+            <p style={{ fontSize: '11px', color: '#D4E875', fontWeight: '700', margin: '2px 0 0 0' }}>{user?.role}</p>
           </div>
-          <div style={localStyles.footerActions}>
-            <ThemeToggle />
-            <button onClick={handleLogout} style={localStyles.logoutButton} title="Logout">
-              🚪 Keluar
-            </button>
-          </div>
+          <button onClick={handleLogout} className="nature-pill inactive" style={{ width: '100%', justifyContent: 'center', color: '#EF4444' }}>
+            🚪 Keluar
+          </button>
         </div>
       </aside>
 
-      {/* MOBILE BOTTOM NAVBAR (Mobile Only - Hidden in Desktop via CSS) */}
-      <nav className="navbar">
-        <button onClick={() => setActiveTab('dashboard')} className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}>📊</button>
-        <button onClick={() => setActiveTab('requests')} className={`nav-item ${activeTab === 'requests' ? 'active' : ''}`}>📋</button>
-        <button onClick={() => setActiveTab('users')} className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}>👥</button>
-        <button onClick={handleLogout} className="nav-item">🚪</button>
-      </nav>
-
       {/* MAIN CONTAINER CONTENT */}
-      <main className="main-content" style={localStyles.mainContent}>
+      <main style={localStyles.mainContent}>
         
         {/* Header Section */}
-        <header style={localStyles.contentHeader}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
           <div>
-            <h1 className="text-display" style={localStyles.welcomeText}>
-              Selamat pagi, Admin 👋
+            <h1 className="nature-huge-header" style={{ fontSize: '32px', margin: 0 }}>
+              Selamat Pagi, Admin 👋
             </h1>
-            <p style={localStyles.dateText}>
+            <p style={{ fontSize: '14px', color: '#68776B', marginTop: '4px', margin: 0 }}>
               {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
         </header>
 
         {error && (
-          <div className="glass-card" style={localStyles.errorCard}>
-            <span style={{ fontSize: '20px' }}>⚠️</span>
-            <span>{error}</span>
+          <div style={{ padding: '16px 24px', backgroundColor: '#FEE2E2', color: '#991B1B', borderRadius: '24px', fontWeight: '700', marginBottom: '24px' }}>
+            ⚠️ {error}
           </div>
         )}
 
         {isLoading ? (
-          <div style={localStyles.loadingCenter}>
-            <div className="shimmer" style={{ width: '100%', height: '140px', borderRadius: '20px', marginBottom: '24px' }}></div>
-            <div className="shimmer" style={{ width: '100%', height: '300px', borderRadius: '20px' }}></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ background: '#D2DDD4', height: '140px', borderRadius: '40px' }}></div>
+            <div style={{ background: '#D2DDD4', height: '300px', borderRadius: '40px' }}></div>
           </div>
         ) : (
           <div className="animate-in">
             
-            {/* STAT CARDS (Swipeable di mobile, grid di desktop) */}
-            <div className="swipe-container" style={localStyles.statsGrid}>
-              {statsConfig.map(stat => {
-                const count = summary?.by_status?.[stat.key] || 0;
-                return (
-                  <div key={stat.key} className="glass-card swipe-card" style={localStyles.statCard}>
-                    <div style={localStyles.statHeader}>
-                      <span style={{ fontSize: '24px' }}>{stat.icon}</span>
-                      <span style={{ color: stat.color, fontWeight: '700', fontSize: '11px', textTransform: 'uppercase' }}>
-                        {stat.label}
+            {/* TAMPILAN DASHBOARD METRICS */}
+            {activeTab === 'dashboard' && (
+              <>
+                {/* 5 KPI STAT CARDS */}
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '28px' }}>
+                  {statsConfig.map(stat => {
+                    const count = summary?.by_status?.[stat.key] || 0;
+                    return (
+                      <div key={stat.key} className="glass-card" style={{ flex: '1 0 160px', padding: '24px', borderRadius: '32px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '800', color: stat.color, textTransform: 'uppercase' }}>
+                            {stat.label}
+                          </span>
+                          <span>{stat.icon}</span>
+                        </div>
+                        <p style={{ fontSize: '40px', fontWeight: '800', color: '#101411', margin: 0 }}>{count}</p>
+                        <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Total Laporan</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* GRAPHICS & RECENT LIST */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
+                  
+                  {/* Left Column: Recent Tickets */}
+                  <div className="nature-main-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <span className="nature-micro-label">ANTREAN LAPORAN TERBARU</span>
+                      <span style={{ fontSize: '12px', fontWeight: '800', backgroundColor: '#E0E8E1', padding: '4px 12px', borderRadius: '9999px' }}>
+                        {requests.length} Total
                       </span>
                     </div>
-                    <p style={localStyles.statNumber}>{count}</p>
-                    <p style={localStyles.statMuted}>Total Tiket</p>
-                  </div>
-                );
-              })}
-            </div>
 
-            {/* TWO COLUMN GRAPHICS & LISTING */}
-            <div style={localStyles.dashboardGrid}>
-              
-              {/* KOLOM KIRI: Daftar Tiket & Filter */}
-              <div className="glass-card" style={localStyles.listCard}>
-                <div style={localStyles.cardTitleArea}>
-                  <h3 className="text-heading">Daftar Tiket Terbaru</h3>
-                  <span style={localStyles.ticketCountBadge}>{filteredRequests.length} Tiket</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {requests.slice(0, 4).map(req => (
+                        <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E0E8E1', paddingBottom: '16px' }}>
+                          <div>
+                            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#8E9A90', fontWeight: '700' }}>{req.request_number}</span>
+                            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#101411', margin: '2px 0 0 0' }}>{req.title}</h4>
+                            <p style={{ fontSize: '12px', color: '#68776B', margin: '4px 0 0 0' }}>
+                              📍 {req.location} • Kategori: <strong>{req.category}</strong>
+                            </p>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ backgroundColor: '#101411', color: '#D4E875', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px' }}>
+                              {req.status}
+                            </span>
+                            <Link to={`/requests/${req.id}`}>
+                              <button className="nature-pill active" style={{ padding: '8px 14px', fontSize: '12px' }}>
+                                Detail
+                              </button>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Category Distribution */}
+                  <div className="nature-main-card">
+                    <span className="nature-micro-label">DISTRIBUSI KELUHAN</span>
+
+                    <div style={{ marginTop: '20px' }}>
+                      {totalCategoryTickets === 0 ? (
+                        <p style={{ color: '#8E9A90', textAlign: 'center', padding: '24px 0' }}>Belum ada data tiket.</p>
+                      ) : (
+                        Object.keys(categoryCounts).map(cat => {
+                          const count = categoryCounts[cat] || 0;
+                          const percentage = totalCategoryTickets > 0 
+                            ? Math.round((count / totalCategoryTickets) * 100) 
+                            : 0;
+
+                          return (
+                            <div key={cat} style={{ marginBottom: '20px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', fontWeight: '700' }}>
+                                <span>{cat}</span>
+                                <span style={{ color: '#56665A' }}>{count} tiket ({percentage}%)</span>
+                              </div>
+                              <div style={{ height: '8px', backgroundColor: '#E0E8E1', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ height: '100%', backgroundColor: '#101411', width: `${percentage}%`, borderRadius: '4px' }}></div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              </>
+            )}
+
+            {/* TAMPILAN SEMUA LAPORAN */}
+            {activeTab === 'requests' && (
+              <div className="nature-main-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <span className="nature-micro-label">DAFTAR SEMUA LAPORAN MASUK</span>
+                  <span style={{ fontSize: '12px', fontWeight: '800', backgroundColor: '#E0E8E1', padding: '4px 12px', borderRadius: '9999px' }}>
+                    {filteredRequests.length} Ditemukan
+                  </span>
                 </div>
 
                 {/* Filter Bar */}
-                <div style={localStyles.filterBar}>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
                   <input
                     type="text"
-                    placeholder="Cari No. Tiket / Judul..."
+                    placeholder="Cari Judul / No. Laporan..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    className="neu-input"
-                    style={{ flex: 2, minWidth: '180px' }}
+                    style={localStyles.filterInput}
                   />
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="neu-input"
-                    style={{ flex: 1, minWidth: '130px', cursor: 'pointer' }}
+                    style={{ ...localStyles.filterInput, flex: 1, cursor: 'pointer' }}
                   >
                     <option value="">Semua Status</option>
                     <option value="SUBMITTED">SUBMITTED</option>
@@ -223,8 +310,7 @@ export const AdminDashboard: React.FC = () => {
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="neu-input"
-                    style={{ flex: 1, minWidth: '130px', cursor: 'pointer' }}
+                    style={{ ...localStyles.filterInput, flex: 1, cursor: 'pointer' }}
                   >
                     <option value="">Semua Kategori</option>
                     <option value="Internet">Internet</option>
@@ -235,84 +321,100 @@ export const AdminDashboard: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Tickets Items */}
-                <div style={localStyles.ticketsList}>
-                  {filteredRequests.length === 0 ? (
-                    <div style={localStyles.emptyStateCenter}>
-                      <span style={{ fontSize: '40px', marginBottom: '8px' }}>📂</span>
-                      <p style={{ color: 'var(--text-muted)' }}>Tidak ada tiket keluhan yang cocok.</p>
-                    </div>
-                  ) : (
-                    filteredRequests.slice(0, 5).map(req => (
-                      <div key={req.id} style={localStyles.ticketItem}>
-                        <div style={localStyles.ticketHeader}>
-                          <div>
-                            <span style={localStyles.ticketNumber}>{req.request_number}</span>
-                            <h4 style={localStyles.ticketTitle}>{req.title}</h4>
-                          </div>
-                          <span className={`status-badge status-${req.status.toLowerCase().replace('_', '-')}`}>
-                            {req.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                        
-                        <div style={localStyles.ticketFooter}>
-                          <p style={localStyles.ticketMeta}>
-                            Oleh: <strong style={{ color: 'var(--text-primary)' }}>Gwen</strong> •{' '}
-                            {new Date(req.created_at).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
-                          </p>
-                          <Link to={`/requests/${req.id}`} style={{ textDecoration: 'none' }}>
-                            <button className="btn-glass" style={localStyles.tinjauButton}>
-                              Tinjau →
-                            </button>
-                          </Link>
-                        </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {filteredRequests.map(req => (
+                    <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E0E8E1', paddingBottom: '16px' }}>
+                      <div>
+                        <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#8E9A90', fontWeight: '700' }}>{req.request_number}</span>
+                        <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#101411', margin: '2px 0 0 0' }}>{req.title}</h4>
+                        <p style={{ fontSize: '12px', color: '#68776B', margin: '4px 0 0 0' }}>
+                          📍 {req.location} • Kategori: <strong>{req.category}</strong>
+                        </p>
                       </div>
-                    ))
-                  )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ backgroundColor: '#FEF3C7', color: '#B45309', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px' }}>
+                          {req.status}
+                        </span>
+                        <Link to={`/requests/${req.id}`}>
+                          <button className="nature-pill active" style={{ padding: '8px 14px', fontSize: '12px' }}>
+                            Tinjau
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
 
-              {/* KOLOM KANAN: Visual Charts & Analytics */}
-              <div className="glass-card" style={localStyles.chartCard}>
-                <h3 className="text-heading" style={{ marginBottom: '24px' }}>Distribusi Kerusakan</h3>
+            {/* TAMPILAN MANAJEMEN USER */}
+            {activeTab === 'users' && (
+              <div className="nature-main-card">
+                <div style={{ marginBottom: '24px' }}>
+                  <span className="nature-micro-label">MANAJEMEN PENGGUNA SISTEM</span>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', margin: '4px 0 0 0' }}>Daftar Pengguna UNKLAB</h3>
+                </div>
 
-                {totalCategoryTickets === 0 ? (
-                  <div style={localStyles.emptyStateCenter}>
-                    <span style={{ fontSize: '40px', marginBottom: '8px' }}>📊</span>
-                    <p style={{ color: 'var(--text-muted)' }}>Belum ada data distribusi tiket.</p>
-                  </div>
-                ) : (
-                  <div>
-                    {Object.keys(categoryCounts).map(cat => {
-                      const count = categoryCounts[cat] || 0;
-                      const percentage = totalCategoryTickets > 0 
-                        ? Math.round((count / totalCategoryTickets) * 100) 
-                        : 0;
-
-                      return (
-                        <div key={cat} style={{ marginBottom: '20px' }}>
-                          <div style={localStyles.chartLabelArea}>
-                            <span style={{ fontWeight: '500' }}>{cat}</span>
-                            <span style={{ color: 'var(--text-secondary)' }}>
-                              <strong>{count}</strong> tiket ({percentage}%)
-                            </span>
-                          </div>
-                          <div style={localStyles.chartTrack}>
-                            <div 
-                              style={{ 
-                                ...localStyles.chartBar, 
-                                width: `${percentage}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #C0D0C4' }}>
+                        <th style={localStyles.th}>Nama</th>
+                        <th style={localStyles.th}>Email</th>
+                        <th style={localStyles.th}>Role / Peran</th>
+                        <th style={localStyles.th}>Status Akun</th>
+                        <th style={localStyles.th}>Aksi Ubah</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map(u => {
+                        const isSelf = u.id === user?.id;
+                        return (
+                          <tr key={u.id} style={{ borderBottom: '1px solid #E0E8E1' }}>
+                            <td style={localStyles.td}><strong>{u.name}</strong></td>
+                            <td style={localStyles.td}>{u.email}</td>
+                            <td style={localStyles.td}>
+                              {isSelf ? (
+                                <span style={{ fontWeight: '800', color: '#101411' }}>{u.role} (Anda)</span>
+                              ) : (
+                                <select
+                                  value={u.role}
+                                  onChange={(e) => handleUserRoleChange(u.id, e.target.value)}
+                                  style={{ padding: '6px 12px', borderRadius: '9999px', border: '2px solid #C0D0C4', outline: 'none', fontWeight: '700', fontSize: '12px' }}
+                                >
+                                  <option value="PELAPOR">PELAPOR</option>
+                                  <option value="ADMIN">ADMIN</option>
+                                  <option value="TEKNISI">TEKNISI</option>
+                                  <option value="MANAJER">MANAJER</option>
+                                </select>
+                              )}
+                            </td>
+                            <td style={localStyles.td}>
+                              <span style={{ fontWeight: '800', color: u.is_active === 1 ? '#047857' : '#DC2626' }}>
+                                {u.is_active === 1 ? 'AKTIF' : 'NONAKTIF'}
+                              </span>
+                            </td>
+                            <td style={localStyles.td}>
+                              {isSelf ? (
+                                <span style={{ color: '#8E9A90', fontSize: '12px' }}>Terkunci</span>
+                              ) : (
+                                <button
+                                  onClick={() => handleUserStatusToggle(u.id, u.is_active)}
+                                  className={`nature-pill ${u.is_active === 1 ? 'inactive' : 'active'}`}
+                                  style={{ padding: '6px 14px', fontSize: '11px', color: u.is_active === 1 ? '#DC2626' : '#FFFFFF' }}
+                                >
+                                  {u.is_active === 1 ? 'Nonaktifkan' : 'Aktifkan'}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-
-            </div>
+            )}
 
           </div>
         )}
@@ -321,243 +423,56 @@ export const AdminDashboard: React.FC = () => {
   );
 };
 
-// Local Styles
 const localStyles: Record<string, React.CSSProperties> = {
   layoutContainer: {
     display: 'flex',
     minHeight: '100vh',
-    backgroundColor: 'var(--bg-primary)',
-    position: 'relative',
+    width: '100vw',
+  },
+  sidebar: {
+    width: '280px',
+    backgroundColor: 'rgba(16, 20, 17, 0.65)',
+    backdropFilter: 'blur(32px) saturate(140%)',
+    borderRight: '1px solid rgba(255, 255, 255, 0.15)',
+    padding: '32px 24px',
+    display: 'flex',
+    flexDirection: 'column',
+    boxSizing: 'border-box',
   },
   sidebarHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    marginBottom: '32px',
-    padding: '0 8px',
-  },
-  sidebarLogo: {
-    fontSize: '32px',
-    color: 'var(--accent-purple)',
-  },
-  sidebarTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '18px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-    lineHeight: '1.2',
-  },
-  sidebarSubtitle: {
-    fontSize: '11px',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    margin: 0,
-  },
-  sidebarNav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    flex: 1,
-  },
-  sidebarFooter: {
-    marginTop: 'auto',
-    borderTop: '1px solid var(--border-subtle)',
-    paddingTop: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  userInfo: {
-    padding: '0 8px',
-  },
-  userName: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  userRole: {
-    fontSize: '11px',
-    color: 'var(--accent-purple)',
-    fontWeight: '500',
-    margin: '2px 0 0 0',
-  },
-  footerActions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoutButton: {
-    background: 'none',
-    border: 'none',
-    color: 'var(--accent-rose)',
-    fontSize: '13px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    padding: '6px 12px',
+    marginBottom: '36px',
   },
   mainContent: {
-    width: '100%',
+    flex: 1,
+    padding: '40px',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
   },
-  contentHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '28px',
-  },
-  welcomeText: {
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  dateText: {
-    fontSize: '13.5px',
-    color: 'var(--text-muted)',
-    marginTop: '4px',
-  },
-  errorCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '16px 24px',
-    borderLeft: '4px solid var(--accent-rose)',
-    color: 'var(--accent-rose)',
-    marginBottom: '24px',
-  },
-  loadingCenter: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    width: '100%',
-  },
-  statsGrid: {
-    display: 'flex',
-    gap: '16px',
-    marginBottom: '28px',
-    paddingBottom: '8px',
-  },
-  statCard: {
-    flex: '1 0 180px',
-    padding: '24px',
-    borderRadius: '20px',
-  },
-  statHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '14px',
-  },
-  statNumber: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '36px',
+  filterInput: {
+    padding: '10px 18px',
+    borderRadius: '9999px',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    color: '#101411',
     fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-    lineHeight: '1',
-  },
-  statMuted: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    marginTop: '6px',
-    margin: 0,
-  },
-  dashboardGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '24px',
-  },
-  listCard: {
-    padding: '28px 24px',
-  },
-  cardTitleArea: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  ticketCountBadge: {
-    fontSize: '11px',
-    fontWeight: '600',
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    color: 'var(--accent-purple)',
-    padding: '4px 10px',
-    borderRadius: '12px',
-  },
-  filterBar: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '12px',
-    marginBottom: '24px',
-  },
-  ticketsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  ticketItem: {
-    borderBottom: '1px solid var(--border-subtle)',
-    paddingBottom: '16px',
-  },
-  ticketHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: '12px',
-  },
-  ticketNumber: {
-    fontFamily: 'monospace',
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-  },
-  ticketTitle: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: 'var(--text-primary)',
-    margin: '4px 0 0 0',
-  },
-  ticketFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: '12px',
-  },
-  ticketMeta: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    margin: 0,
-  },
-  tinjauButton: {
-    padding: '6px 12px',
-    fontSize: '12px',
-  },
-  chartCard: {
-    padding: '28px 24px',
-    height: 'fit-content',
-  },
-  chartLabelArea: {
-    display: 'flex',
-    justifyContent: 'space-between',
     fontSize: '13px',
-    marginBottom: '6px',
+    outline: 'none',
+    flex: 2,
   },
-  chartTrack: {
-    height: '8px',
-    backgroundColor: 'var(--border-subtle)',
-    borderRadius: '4px',
-    overflow: 'hidden',
+  th: {
+    padding: '12px 8px',
+    fontSize: '11px',
+    fontWeight: '800',
+    color: '#101411',
+    textTransform: 'uppercase',
   },
-  chartBar: {
-    height: '100%',
-    background: 'linear-gradient(90deg, var(--accent-purple), var(--accent-teal))',
-    borderRadius: '4px',
-  },
-  emptyStateCenter: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '40px 0',
-    textAlign: 'center',
+  td: {
+    padding: '14px 8px',
+    fontSize: '13.5px',
+    color: '#344037',
   },
 };
+

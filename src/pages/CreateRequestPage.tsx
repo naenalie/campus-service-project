@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ThemeToggle } from '../components/ThemeToggle';
 import * as api from '../services/api';
 
 const BUILDINGS = ['GK1', 'GK2', 'GK3', 'Crystal', 'Chapel', 'Hall', 'Asrama'];
@@ -87,21 +86,21 @@ export const CreateRequestPage: React.FC = () => {
   if (createdRequest) {
     return (
       <div style={localStyles.pageContainer}>
-        <div className="glass-card-strong animate-in" style={localStyles.successCard}>
-          <div style={localStyles.successIcon}>✅</div>
-          <h2 style={localStyles.successTitle}>Laporan Berhasil Dibuat!</h2>
-          <p style={localStyles.successSubtitle}>Laporan keluhan Anda telah masuk ke dalam sistem.</p>
+        <div className="nature-main-card" style={localStyles.successCard}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
+          <h2 style={{ fontSize: '28px', fontWeight: '800', margin: 0 }}>Laporan Berhasil Dibuat!</h2>
+          <p style={{ fontSize: '14px', color: '#68776B', margin: '8px 0 24px 0' }}>Laporan keluhan Anda telah masuk ke dalam sistem.</p>
           
-          <div style={localStyles.successInfoBox}>
-            <p style={localStyles.successLabel}>Nomor Laporan</p>
-            <p style={localStyles.successNumber}>{createdRequest.request_number}</p>
+          <div style={{ backgroundColor: '#F3F7F4', borderRadius: '24px', padding: '20px', marginBottom: '32px' }}>
+            <p style={{ fontSize: '11px', fontWeight: '800', color: '#68776B', textTransform: 'uppercase', margin: 0 }}>Nomor Laporan</p>
+            <p style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: '800', color: '#101411', marginTop: '6px', margin: 0 }}>{createdRequest.request_number}</p>
           </div>
 
-          <div style={localStyles.successActions}>
+          <div style={{ display: 'flex', gap: '16px' }}>
             <button 
               onClick={() => navigate(`/requests/${createdRequest.id}`)}
-              className="btn-primary"
-              style={{ flex: 1 }}
+              className="nature-pill active"
+              style={{ flex: 1, justifyContent: 'center' }}
             >
               Lihat Laporan
             </button>
@@ -115,8 +114,8 @@ export const CreateRequestPage: React.FC = () => {
                 setDescription('');
                 setFieldErrors({});
               }}
-              className="btn-glass"
-              style={{ flex: 1 }}
+              className="nature-pill inactive"
+              style={{ flex: 1, justifyContent: 'center' }}
             >
               Buat Laporan Lain
             </button>
@@ -130,25 +129,23 @@ export const CreateRequestPage: React.FC = () => {
     <div style={localStyles.pageContainer}>
       
       {/* Top Navbar */}
-      <div style={localStyles.topBar}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '640px', marginBottom: '24px' }}>
         <button 
           onClick={() => navigate('/')} 
-          className="btn-glass"
-          style={{ gap: '6px' }}
+          className="nature-pill inactive"
         >
           ← Kembali
         </button>
-        <ThemeToggle />
       </div>
 
       {/* Main Glass Form Card */}
-      <div className="glass-card-strong animate-in" style={localStyles.formCard}>
-        <div style={localStyles.formHeader}>
-          <span style={{ fontSize: '32px' }}>📝</span>
-          <h1 className="text-heading" style={{ color: '#fff', margin: '8px 0 2px 0' }}>
+      <div className="nature-main-card" style={localStyles.formCard}>
+        <div style={{ marginBottom: '28px' }}>
+          <span className="nature-micro-label">FORMULIR KELUHAN</span>
+          <h1 className="nature-huge-header" style={{ fontSize: '32px', margin: '4px 0 0 0' }}>
             Buat Laporan Baru
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+          <p style={{ color: '#68776B', fontSize: '14px', marginTop: '4px', margin: 0 }}>
             Deskripsikan masalah kerusakan fasilitas secara rinci.
           </p>
         </div>
@@ -164,7 +161,7 @@ export const CreateRequestPage: React.FC = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isSubmitting}
-              className="neu-input"
+              style={localStyles.inputField}
             />
             {fieldErrors.title && <span style={localStyles.errorText}>{fieldErrors.title}</span>}
           </div>
@@ -172,13 +169,12 @@ export const CreateRequestPage: React.FC = () => {
           {/* Lokasi Gedung & Detail */}
           <div style={localStyles.formGroup}>
             <label style={localStyles.inputLabel}>Lokasi Kerusakan *</label>
-            <div style={localStyles.locationRow}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <select
                 value={building}
                 onChange={(e) => setBuilding(e.target.value)}
                 disabled={isSubmitting}
-                className="neu-input"
-                style={{ flex: 1, cursor: 'pointer' }}
+                style={{ ...localStyles.inputField, flex: 1, cursor: 'pointer' }}
               >
                 <option value="">Pilih Gedung...</option>
                 {BUILDINGS.map(b => (
@@ -188,12 +184,11 @@ export const CreateRequestPage: React.FC = () => {
               
               <input
                 type="text"
-                placeholder="Detail ruangan (contoh: Lantai 3, R.301)"
+                placeholder="Detail ruangan (contoh: R.301)"
                 value={locationDetail}
                 onChange={(e) => setLocationDetail(e.target.value)}
                 disabled={isSubmitting}
-                className="neu-input"
-                style={{ flex: 2 }}
+                style={{ ...localStyles.inputField, flex: 2 }}
               />
             </div>
             {(fieldErrors.building || fieldErrors.locationDetail) && (
@@ -206,23 +201,19 @@ export const CreateRequestPage: React.FC = () => {
           {/* Kategori Kerusakan (Pills Select) */}
           <div style={localStyles.formGroup}>
             <label style={localStyles.inputLabel}>Kategori *</label>
-            <div style={localStyles.categoriesGrid}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
               {CATEGORIES.map(cat => {
-                const isSelected = category === cat;
+                const active = category === cat;
                 return (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
                     disabled={isSubmitting}
-                    className={isSelected ? 'btn-primary' : 'btn-glass'}
-                    style={{ 
-                      flex: '1 0 100px', 
-                      padding: '10px',
-                      fontSize: '13px',
-                      border: isSelected ? 'none' : '1px solid var(--border-glass)'
-                    }}
+                    className={`nature-pill ${active ? 'active' : 'inactive'}`}
+                    style={{ padding: '8px 16px', fontSize: '13px' }}
                   >
+                    {active && <span className="pill-dot"></span>}
                     {cat}
                   </button>
                 );
@@ -233,13 +224,13 @@ export const CreateRequestPage: React.FC = () => {
 
           {/* Deskripsi */}
           <div style={localStyles.formGroup}>
-            <div style={localStyles.descHeader}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label style={localStyles.inputLabel}>Deskripsi *</label>
               <span 
                 style={{ 
                   fontSize: '12px', 
-                  fontWeight: '600', 
-                  color: isDescValid ? 'var(--status-resolved)' : 'var(--accent-rose)' 
+                  fontWeight: '700', 
+                  color: isDescValid ? '#047857' : '#991B1B' 
                 }}
               >
                 {charCount}/500 karakter
@@ -250,8 +241,7 @@ export const CreateRequestPage: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 500))}
               disabled={isSubmitting}
-              className="neu-input"
-              style={{ minHeight: '120px', resize: 'vertical', fontFamily: 'inherit' }}
+              style={{ ...localStyles.inputField, borderRadius: '24px', minHeight: '120px', resize: 'vertical', fontFamily: 'inherit' }}
             />
             {fieldErrors.description && <span style={localStyles.errorText}>{fieldErrors.description}</span>}
           </div>
@@ -260,17 +250,10 @@ export const CreateRequestPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary"
-            style={{ width: '100%', marginTop: '12px' }}
+            className="nature-pill active"
+            style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '12px' }}
           >
-            {isSubmitting ? (
-              <>
-                <div style={localStyles.spinnerMini}></div>
-                <span>Mengirim Laporan...</span>
-              </>
-            ) : (
-              'Kirim Laporan →'
-            )}
+            {isSubmitting ? 'Mengirim Laporan...' : 'Kirim Laporan →'}
           </button>
 
         </form>
@@ -280,7 +263,6 @@ export const CreateRequestPage: React.FC = () => {
   );
 };
 
-// Local Styles
 const localStyles: Record<string, React.CSSProperties> = {
   pageContainer: {
     display: 'flex',
@@ -288,29 +270,14 @@ const localStyles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    width: '100vw',
-    position: 'relative',
-    padding: '80px 20px 40px 20px',
-    zIndex: 1,
-  },
-  topBar: {
-    position: 'absolute',
-    top: '24px',
-    left: '24px',
-    right: '24px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    zIndex: 10,
+    width: '100%',
+    backgroundColor: 'transparent',
+    padding: '24px',
+    boxSizing: 'border-box',
   },
   formCard: {
     width: '100%',
-    maxWidth: '600px',
-    padding: '36px 32px',
-  },
-  formHeader: {
-    textAlign: 'center',
-    marginBottom: '28px',
+    maxWidth: '640px',
   },
   form: {
     display: 'flex',
@@ -323,87 +290,33 @@ const localStyles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   inputLabel: {
-    fontSize: '12px',
-    fontWeight: '600',
-    color: 'var(--text-secondary)',
+    fontSize: '11px',
+    fontWeight: '800',
+    color: '#101411',
     textTransform: 'uppercase',
-    letterSpacing: '0.04em',
+    letterSpacing: '0.05em',
   },
-  locationRow: {
-    display: 'flex',
-    gap: '12px',
-  },
-  categoriesGrid: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '10px',
-  },
-  descHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  inputField: {
+    padding: '12px 20px',
+    borderRadius: '9999px',
+    border: '2px solid #C0D0C4',
+    backgroundColor: '#FFFFFF',
+    color: '#101411',
+    fontWeight: '600',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box',
   },
   errorText: {
-    fontSize: '11.5px',
-    color: 'var(--accent-rose)',
-    fontWeight: '500',
+    fontSize: '12px',
+    color: '#991B1B',
+    fontWeight: '700',
     marginTop: '2px',
-  },
-  spinnerMini: {
-    width: '18px',
-    height: '18px',
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTop: '2px solid white',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
   },
   successCard: {
     width: '100%',
     maxWidth: '500px',
-    padding: '48px 36px',
-    textAlign: 'center',
-  },
-  successIcon: {
-    fontSize: '64px',
-    marginBottom: '16px',
-  },
-  successTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#fff',
-    margin: 0,
-  },
-  successSubtitle: {
-    fontSize: '13.5px',
-    color: 'var(--text-secondary)',
-    margin: '6px 0 24px 0',
-  },
-  successInfoBox: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    border: '1px solid var(--border-glass)',
-    borderRadius: '16px',
-    padding: '16px',
-    marginBottom: '32px',
-  },
-  successLabel: {
-    fontSize: '11px',
-    fontWeight: '600',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    margin: 0,
-  },
-  successNumber: {
-    fontFamily: 'monospace',
-    fontSize: '18px',
-    fontWeight: '700',
-    color: 'var(--accent-teal)',
-    marginTop: '6px',
-    margin: 0,
-  },
-  successActions: {
-    display: 'flex',
-    gap: '16px',
+    backgroundColor: '#FFFFFF',
   },
 };
+

@@ -1,14 +1,6 @@
-// src/components/OrbBackground.tsx
-// Komponen background floating orbs yang mempercantik tampilan visual halaman (Liquid Glass effect)
-
 import React from 'react';
 
+// Dinonaktifkan untuk memfokuskan layout pada solid pastel background bersih (Slide 1-5 style)
 export const OrbBackground: React.FC = () => {
-  return (
-    <div className="orb-bg">
-      <div className="orb orb-1"></div>
-      <div className="orb orb-2"></div>
-      <div className="orb orb-3"></div>
-    </div>
-  );
+  return null;
 };

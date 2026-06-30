@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ThemeToggle } from '../components/ThemeToggle';
 import * as api from '../services/api';
 
 export const ManagerDashboard: React.FC = () => {
@@ -32,10 +31,8 @@ export const ManagerDashboard: React.FC = () => {
     }
   };
 
-  // 1. Fetch data saat mount & atur Polling Auto-Refresh 5 menit (300000ms)
   useEffect(() => {
     fetchDashboardData();
-
     const intervalId = setInterval(() => {
       console.log('Auto-refreshing dashboard data...');
       fetchDashboardData();
@@ -55,7 +52,7 @@ export const ManagerDashboard: React.FC = () => {
     }
   };
 
-  // Agregasi Data Distribusi Gedung (Dinamis dari recent_requests & mock fallback jika kosong)
+  // Agregasi Data Distribusi Gedung
   const getBuildingDistribution = () => {
     const list = summary?.recent_requests || [];
     const counts: Record<string, number> = {
@@ -73,7 +70,6 @@ export const ManagerDashboard: React.FC = () => {
       }
     });
 
-    // Fallback data representatif agar dashboard tetap indah saat awal kosong
     const totalCount = Object.values(counts).reduce((a, b) => a + b, 0) as number;
     if (totalCount === 0) {
       return [
@@ -98,19 +94,18 @@ export const ManagerDashboard: React.FC = () => {
     const total = Object.values(categoryCounts).reduce((a: any, b: any) => a + b, 0) as number;
 
     if (total === 0) {
-      // Donut Chart Fallback (Subtle placeholder)
       return {
-        background: 'conic-gradient(var(--accent-purple) 0% 40%, var(--accent-teal) 40% 70%, var(--accent-amber) 70% 100%)'
+        background: 'conic-gradient(#8B5CF6 0% 40%, #10B981 40% 70%, #F59E0B 70% 100%)'
       };
     }
 
     let accumulatedPercentage = 0;
     const colors = [
-      'var(--accent-purple)', // Internet
-      'var(--accent-teal)',   // AC
-      'var(--accent-amber)',  // Peralatan Kelas
-      'var(--accent-rose)',   // Kebersihan
-      'var(--accent-blue)'    // Lainnya
+      '#8B5CF6', // Internet
+      '#10B981', // AC
+      '#F59E0B', // Peralatan Kelas
+      '#EF4444', // Kebersihan
+      '#3B82F6'  // Lainnya
     ];
 
     const gradientParts = Object.keys(categoryCounts).map((key, index) => {
@@ -126,7 +121,6 @@ export const ManagerDashboard: React.FC = () => {
     };
   };
 
-  // Metrik Penghitungan Tiket
   const totalRequests = summary?.total_requests || 0;
   const attentionCount = summary ? (summary.by_status?.SUBMITTED || 0) + (summary.by_status?.UNDER_REVIEW || 0) : 0;
   const overdueCount = summary?.overdue_count || 0;
@@ -143,195 +137,215 @@ export const ManagerDashboard: React.FC = () => {
   return (
     <div style={localStyles.layoutContainer}>
       
-      {/* SIDEBAR NAVIGATION (Desktop) */}
-      <aside className="sidebar">
+      {/* SIDEBAR NAVIGATION */}
+      <aside style={localStyles.sidebar}>
         <div style={localStyles.sidebarHeader}>
-          <span style={localStyles.sidebarLogo}>🏛</span>
+          <span style={{ fontSize: '32px' }}>🏛</span>
           <div>
-            <h2 style={localStyles.sidebarTitle}>UNKLAB</h2>
-            <p style={localStyles.sidebarSubtitle}>Campus Services</p>
+            <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '18px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>UNKLAB</h2>
+            <p style={{ fontSize: '11px', color: '#8E9A90', textTransform: 'uppercase', fontWeight: '700', margin: 0 }}>Campus Services</p>
           </div>
         </div>
 
-        <nav style={localStyles.sidebarNav}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
           <button 
             onClick={() => setActiveTab('overview')} 
-            className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+            className={`nature-pill ${activeTab === 'overview' ? 'active' : 'inactive'}`}
+            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'overview' ? '#101411' : '#FFFFFF' }}
           >
             <span>📊</span> Overview
           </button>
           <button 
             onClick={() => setActiveTab('reports')} 
-            className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
+            className={`nature-pill ${activeTab === 'reports' ? 'active' : 'inactive'}`}
+            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'reports' ? '#101411' : '#FFFFFF' }}
           >
             <span>📋</span> Semua Laporan
           </button>
-          <button 
-            onClick={() => setActiveTab('trends')} 
-            className={`nav-item ${activeTab === 'trends' ? 'active' : ''}`}
-          >
-            <span>📈</span> Tren Kerusakan
-          </button>
         </nav>
 
-        <div style={localStyles.sidebarFooter}>
-          <div style={localStyles.userInfo}>
-            <p style={localStyles.userName}>{user?.name}</p>
-            <p style={localStyles.userRole}>{user?.role}</p>
+        <div style={{ marginTop: 'auto', borderTop: '1px solid #2B332E', paddingTop: '20px' }}>
+          <div style={{ padding: '0 8px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '14px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>{user?.name}</p>
+            <p style={{ fontSize: '11px', color: '#D4E875', fontWeight: '700', margin: '2px 0 0 0' }}>{user?.role}</p>
           </div>
-          <div style={localStyles.footerActions}>
-            <ThemeToggle />
-            <button onClick={handleLogout} style={localStyles.logoutButton} title="Logout">
-              🚪 Keluar
-            </button>
-          </div>
+          <button onClick={handleLogout} className="nature-pill inactive" style={{ width: '100%', justifyContent: 'center', color: '#EF4444' }}>
+            🚪 Keluar
+          </button>
         </div>
       </aside>
 
-      {/* MOBILE BOTTOM NAVBAR */}
-      <nav className="navbar">
-        <button onClick={() => setActiveTab('overview')} className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}>📊</button>
-        <button onClick={() => setActiveTab('reports')} className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}>📋</button>
-        <button onClick={() => setActiveTab('trends')} className={`nav-item ${activeTab === 'trends' ? 'active' : ''}`}>📈</button>
-        <button onClick={handleLogout} className="nav-item">🚪</button>
-      </nav>
-
       {/* MAIN CONTAINER CONTENT */}
-      <main className="main-content" style={localStyles.mainContent}>
+      <main style={localStyles.mainContent}>
         
         {/* Header Title */}
-        <header style={localStyles.contentHeader}>
+        <header style={{ marginBottom: '28px' }}>
           <div>
-            <h1 className="text-display" style={localStyles.welcomeText}>
-              Selamat pagi, {user?.name} 📊
+            <h1 className="nature-huge-header" style={{ fontSize: '32px', margin: 0 }}>
+              Selamat Pagi, {user?.name} 📊
             </h1>
-            <p style={localStyles.dateText}>Ringkasan Eksekutif Fasilitas Kampus Universitas Klabat</p>
+            <p style={{ fontSize: '14px', color: '#68776B', marginTop: '4px', margin: 0 }}>
+              Ringkasan Eksekutif Fasilitas Kampus Universitas Klabat
+            </p>
           </div>
         </header>
 
         {error && (
-          <div className="glass-card" style={localStyles.errorCard}>
-            <span style={{ fontSize: '20px' }}>⚠️</span>
-            <span>{error}</span>
+          <div style={{ padding: '16px 24px', backgroundColor: '#FEE2E2', color: '#991B1B', borderRadius: '24px', fontWeight: '700', marginBottom: '24px' }}>
+            ⚠️ {error}
           </div>
         )}
 
         {isLoading ? (
-          <div style={localStyles.loadingCenter}>
-            <div className="shimmer" style={{ width: '100%', height: '140px', borderRadius: '20px', marginBottom: '24px' }}></div>
-            <div className="shimmer" style={{ width: '100%', height: '300px', borderRadius: '20px' }}></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ background: '#D2DDD4', height: '140px', borderRadius: '40px' }}></div>
+            <div style={{ background: '#D2DDD4', height: '300px', borderRadius: '40px' }}></div>
           </div>
         ) : (
-          <div className="animate-in" style={localStyles.dashboardGrid}>
+          <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* BIG STAT CARDS (4 Kolom Grid) */}
             <div style={localStyles.statsContainer}>
-              <div className="glass-card" style={localStyles.statCard}>
-                <span style={localStyles.statIcon}>📋</span>
-                <p style={localStyles.statNumber}>{totalRequests}</p>
-                <p style={localStyles.statLabel}>Total Tiket Masuk</p>
+              <div className="glass-card" style={{ padding: '24px 20px', borderRadius: '32px' }}>
+                <span style={{ fontSize: '24px', display: 'block', marginBottom: '12px' }}>📋</span>
+                <p style={{ fontSize: '36px', fontWeight: '800', color: '#101411', margin: 0 }}>{totalRequests}</p>
+                <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Total Tiket Masuk</p>
               </div>
-              <div className="glass-card" style={localStyles.statCard}>
-                <span style={{ ...localStyles.statIcon, color: 'var(--accent-purple)' }}>🟣</span>
-                <p style={localStyles.statNumber}>{attentionCount}</p>
-                <p style={localStyles.statLabel}>Butuh Penanganan</p>
+              <div className="glass-card" style={{ padding: '24px 20px', borderRadius: '32px' }}>
+                <span style={{ fontSize: '24px', display: 'block', marginBottom: '12px' }}>🟣</span>
+                <p style={{ fontSize: '36px', fontWeight: '800', color: '#8B5CF6', margin: 0 }}>{attentionCount}</p>
+                <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Butuh Penanganan</p>
               </div>
-              <div className="glass-card" style={{ ...localStyles.statCard, border: overdueCount > 0 ? '1px solid rgba(244, 63, 94, 0.3)' : '1px solid var(--border-glass)' }}>
-                <span style={{ ...localStyles.statIcon, color: 'var(--accent-rose)' }}>🚨</span>
-                <p style={{ ...localStyles.statNumber, color: overdueCount > 0 ? 'var(--accent-rose)' : 'inherit' }}>{overdueCount}</p>
-                <p style={localStyles.statLabel}>Terlambat (&gt; 7 Hari)</p>
+              <div className="glass-card" style={{ padding: '24px 20px', borderRadius: '32px', border: overdueCount > 0 ? '2px solid #EF4444' : 'none' }}>
+                <span style={{ fontSize: '24px', display: 'block', marginBottom: '12px' }}>🚨</span>
+                <p style={{ fontSize: '36px', fontWeight: '800', color: overdueCount > 0 ? '#EF4444' : '#101411', margin: 0 }}>{overdueCount}</p>
+                <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Terlambat (&gt; 7 Hari)</p>
               </div>
-              <div className="glass-card" style={localStyles.statCard}>
-                <span style={{ ...localStyles.statIcon, color: 'var(--status-resolved)' }}>✅</span>
-                <p style={localStyles.statNumber}>{resolvedCount}</p>
-                <p style={localStyles.statLabel}>Selesai Diperbaiki</p>
+              <div className="glass-card" style={{ padding: '24px 20px', borderRadius: '32px' }}>
+                <span style={{ fontSize: '24px', display: 'block', marginBottom: '12px' }}>✅</span>
+                <p style={{ fontSize: '36px', fontWeight: '800', color: '#10B981', margin: 0 }}>{resolvedCount}</p>
+                <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Selesai Diperbaiki</p>
               </div>
             </div>
 
-            {/* SEKSI GRAFIK & ANALISIS (DISTRIBUSI DATA) */}
-            <div style={localStyles.chartsLayout}>
-              
-              {/* 1. DISTRIBUSI PER GEDUNG */}
-              <div className="glass-card" style={localStyles.chartCard}>
-                <h3 className="text-heading" style={localStyles.cardTitle}>Distribusi Kerusakan per Gedung</h3>
-                <div style={localStyles.barChartContainer}>
-                  {getBuildingDistribution().map(bldg => {
-                    const totalBuildingTickets = getBuildingDistribution().reduce((a: any, b: any) => a + b.count, 0);
-                    const percentage = totalBuildingTickets > 0 ? Math.round((bldg.count / totalBuildingTickets) * 100) : 0;
-                    return (
-                      <div key={bldg.name} style={localStyles.barRow}>
-                        <span style={localStyles.barLabel}>{bldg.name}</span>
-                        <div style={localStyles.barTrack}>
-                          <div 
-                            style={{ 
-                              ...localStyles.barFill, 
-                              width: `${percentage}%`,
-                              background: 'linear-gradient(90deg, var(--accent-purple), var(--accent-teal))'
-                            }}
-                          ></div>
-                        </div>
-                        <span style={localStyles.barCount}>{bldg.count} Tiket ({percentage}%)</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 2. DISTRIBUSI PER KATEGORI (Donut Chart CSS) */}
-              <div className="glass-card" style={localStyles.chartCard}>
-                <h3 className="text-heading" style={localStyles.cardTitle}>Sebaran Kategori Kerusakan</h3>
-                
-                <div style={localStyles.donutWrapper}>
-                  {/* Donut Circle */}
-                  <div style={{ ...localStyles.donutCircle, ...getDonutChartStyle() }}>
-                    <div style={localStyles.donutCenter}>
-                      <span style={localStyles.donutTotalText}>{totalRequests}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>TICKET</span>
+            {activeTab === 'overview' && (
+              <>
+                {/* SEKSI GRAFIK & ANALISIS (DISTRIBUSI DATA) */}
+                <div style={localStyles.chartsLayout}>
+                  
+                  {/* 1. DISTRIBUSI PER GEDUNG */}
+                  <div className="nature-main-card">
+                    <span className="nature-micro-label" style={{ marginBottom: '16px', display: 'block' }}>DISTRIBUSI KERUSAKAN PER GEDUNG</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {getBuildingDistribution().map(bldg => {
+                        const totalBuildingTickets = getBuildingDistribution().reduce((a: any, b: any) => a + b.count, 0);
+                        const percentage = totalBuildingTickets > 0 ? Math.round((bldg.count / totalBuildingTickets) * 100) : 0;
+                        return (
+                          <div key={bldg.name} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
+                            <span style={{ width: '60px', fontWeight: '800' }}>{bldg.name}</span>
+                            <div style={{ flex: 1, height: '10px', backgroundColor: '#E0E8E1', borderRadius: '5px', overflow: 'hidden' }}>
+                              <div 
+                                style={{ 
+                                  height: '100%', 
+                                  width: `${percentage}%`,
+                                  backgroundColor: '#101411',
+                                  borderRadius: '5px'
+                                }}
+                              ></div>
+                            </div>
+                            <span style={{ width: '110px', textAlign: 'right', color: '#56665A', fontWeight: '700' }}>{bldg.count} Tiket ({percentage}%)</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Keterangan Kategori */}
-                  <div style={localStyles.legendGrid}>
-                    {Object.keys(summary?.by_category || {}).map((cat, index) => {
-                      const colors = ['var(--accent-purple)', 'var(--accent-teal)', 'var(--accent-amber)', 'var(--accent-rose)', 'var(--accent-blue)'];
-                      return (
-                        <div key={cat} style={localStyles.legendItem}>
-                          <span style={{ ...localStyles.legendDot, backgroundColor: colors[index % colors.length] }}></span>
-                          <span style={localStyles.legendText}>{cat} ({summary.by_category[cat]})</span>
+                  {/* 2. DISTRIBUSI PER KATEGORI */}
+                  <div className="nature-main-card">
+                    <span className="nature-micro-label" style={{ marginBottom: '16px', display: 'block' }}>SEBARAN KATEGORI KERUSAKAN</span>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                      {/* Donut Circle */}
+                      <div style={{ ...localStyles.donutCircle, ...getDonutChartStyle() }}>
+                        <div style={localStyles.donutCenter}>
+                          <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '32px', fontWeight: '800', color: '#101411', lineHeight: '1' }}>{totalRequests}</span>
+                          <span style={{ fontSize: '11px', color: '#8E9A90', fontWeight: '800' }}>TICKET</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* 3. LAPORAN OVERDUE (PRIORITAS WARNING BAR) */}
-            <div className="glass-card" style={localStyles.overdueSection}>
-              <h3 className="text-heading" style={{ ...localStyles.cardTitle, color: 'var(--accent-rose)' }}>
-                🚨 Tiket Terlambat (Overdue &gt; 7 Hari)
-              </h3>
-
-              {overdueRequestsList.length === 0 ? (
-                <p style={localStyles.emptyText}>Tidak ada tiket overdue saat ini. Kinerja tim optimal! 👍</p>
-              ) : (
-                <div style={localStyles.overdueList}>
-                  {overdueRequestsList.map((req: any) => (
-                    <div key={req.id} style={localStyles.overdueItem}>
-                      <div style={localStyles.overdueHeader}>
-                        <span style={localStyles.overdueNumber}>{req.request_number}</span>
-                        <h4 style={localStyles.overdueTitle}>{req.title}</h4>
                       </div>
-                      <p style={localStyles.overdueMeta}>
-                        📍 {req.location} • Status: <strong>{req.status}</strong> • Dibuat pada:{' '}
-                        {new Date(req.created_at).toLocaleDateString('id-ID')}
-                      </p>
+
+                      {/* Keterangan Kategori */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
+                        {Object.keys(summary?.by_category || {}).map((cat, index) => {
+                          const colors = ['#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
+                          return (
+                            <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700' }}>
+                              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colors[index % colors.length] }}></span>
+                              <span style={{ color: '#56665A' }}>{cat} ({summary.by_category[cat]})</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* 3. LAPORAN OVERDUE */}
+                <div className="nature-main-card" style={{ border: overdueRequestsList.length > 0 ? '2px solid #EF4444' : 'none' }}>
+                  <span className="nature-micro-label" style={{ color: overdueRequestsList.length > 0 ? '#EF4444' : '#68776B', marginBottom: '16px', display: 'block' }}>
+                    🚨 TIKET TERLAMBAT (OVERDUE &gt; 7 HARI)
+                  </span>
+
+                  {overdueRequestsList.length === 0 ? (
+                    <p style={{ fontSize: '13px', color: '#8E9A90', textAlign: 'center', padding: '16px 0', margin: 0 }}>Tidak ada tiket overdue saat ini. Kinerja tim optimal! 👍</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {overdueRequestsList.map((req: any) => (
+                        <div key={req.id} style={{ backgroundColor: '#FFF5F5', border: '1px solid #FED7D7', borderRadius: '24px', padding: '16px 20px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#EF4444', fontWeight: '800' }}>{req.request_number}</span>
+                            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#101411', margin: 0 }}>{req.title}</h4>
+                          </div>
+                          <p style={{ fontSize: '12.5px', color: '#56665A', marginTop: '6px', margin: 0 }}>
+                            📍 {req.location} • Status: <strong>{req.status}</strong> • Dibuat pada:{' '}
+                            {new Date(req.created_at).toLocaleDateString('id-ID')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* TAMPILAN SEMUA LAPORAN (READ-ONLY OVERVIEW UNTUK MANAJER) */}
+            {activeTab === 'reports' && (
+              <div className="nature-main-card">
+                <div style={{ marginBottom: '20px' }}>
+                  <span className="nature-micro-label">SEMUA LAPORAN MASUK</span>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', margin: '4px 0 0 0' }}>Daftar Kerusakan Kampus</h3>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {(summary?.recent_requests || []).map((req: any) => (
+                    <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E0E8E1', paddingBottom: '16px' }}>
+                      <div>
+                        <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#8E9A90', fontWeight: '700' }}>{req.request_number}</span>
+                        <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#101411', margin: '2px 0 0 0' }}>{req.title}</h4>
+                        <p style={{ fontSize: '12px', color: '#68776B', margin: '4px 0 0 0' }}>
+                          📍 {req.location} • Kategori: <strong>{req.category}</strong>
+                        </p>
+                      </div>
+                      <div>
+                        <span style={{ backgroundColor: '#101411', color: '#D4E875', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px', textTransform: 'uppercase' }}>
+                          {req.status}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
           </div>
         )}
@@ -340,196 +354,43 @@ export const ManagerDashboard: React.FC = () => {
   );
 };
 
-// Local Styles
 const localStyles: Record<string, React.CSSProperties> = {
   layoutContainer: {
     display: 'flex',
     minHeight: '100vh',
-    backgroundColor: 'var(--bg-primary)',
-    position: 'relative',
-    zIndex: 1,
+    width: '100vw',
+  },
+  sidebar: {
+    width: '280px',
+    backgroundColor: 'rgba(16, 20, 17, 0.65)',
+    backdropFilter: 'blur(32px) saturate(140%)',
+    borderRight: '1px solid rgba(255, 255, 255, 0.15)',
+    padding: '32px 24px',
+    display: 'flex',
+    flexDirection: 'column',
+    boxSizing: 'border-box',
   },
   sidebarHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    marginBottom: '32px',
-    padding: '0 8px',
-  },
-  sidebarLogo: {
-    fontSize: '32px',
-    color: 'var(--accent-purple)',
-  },
-  sidebarTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '18px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-    lineHeight: '1.2',
-  },
-  sidebarSubtitle: {
-    fontSize: '11px',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    margin: 0,
-  },
-  sidebarNav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    flex: 1,
-  },
-  sidebarFooter: {
-    marginTop: 'auto',
-    borderTop: '1px solid var(--border-subtle)',
-    paddingTop: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  userInfo: {
-    padding: '0 8px',
-  },
-  userName: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  userRole: {
-    fontSize: '11px',
-    color: 'var(--accent-purple)',
-    fontWeight: '500',
-    margin: '2px 0 0 0',
-  },
-  footerActions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoutButton: {
-    background: 'none',
-    border: 'none',
-    color: 'var(--accent-rose)',
-    fontSize: '13px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    padding: '6px 12px',
+    marginBottom: '36px',
   },
   mainContent: {
-    width: '100%',
-  },
-  contentHeader: {
-    marginBottom: '28px',
-  },
-  welcomeText: {
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
-  dateText: {
-    fontSize: '14px',
-    color: 'var(--text-secondary)',
-    marginTop: '4px',
-  },
-  errorCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '16px 24px',
-    borderLeft: '4px solid var(--accent-rose)',
-    color: 'var(--accent-rose)',
-    marginBottom: '24px',
-  },
-  loadingCenter: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    width: '100%',
-  },
-  dashboardGrid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
+    flex: 1,
+    padding: '40px',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
   },
   statsContainer: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     gap: '16px',
   },
-  statCard: {
-    padding: '24px 20px',
-    borderRadius: '20px',
-  },
-  statIcon: {
-    fontSize: '24px',
-    display: 'block',
-    marginBottom: '12px',
-  },
-  statNumber: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '32px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-    lineHeight: '1.1',
-  },
-  statLabel: {
-    fontSize: '12.5px',
-    color: 'var(--text-secondary)',
-    marginTop: '4px',
-    margin: 0,
-  },
   chartsLayout: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
     gap: '24px',
-  },
-  chartCard: {
-    padding: '28px 24px',
-  },
-  cardTitle: {
-    marginBottom: '20px',
-  },
-  barChartContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  barRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontSize: '13px',
-  },
-  barLabel: {
-    width: '60px',
-    fontWeight: '600',
-  },
-  barTrack: {
-    flex: 1,
-    height: '10px',
-    backgroundColor: 'var(--border-subtle)',
-    borderRadius: '5px',
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: '5px',
-  },
-  barCount: {
-    width: '110px',
-    textAlign: 'right',
-    color: 'var(--text-secondary)',
-  },
-  donutWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '20px',
-    padding: '10px 0',
   },
   donutCircle: {
     width: '150px',
@@ -539,88 +400,18 @@ const localStyles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
   },
   donutCenter: {
     width: '110px',
     height: '110px',
     borderRadius: '50%',
-    backgroundColor: 'var(--bg-primary)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backdropFilter: 'blur(10px)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
   },
-  donutTotalText: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '32px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    lineHeight: '1',
-  },
-  legendGrid: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: '12px',
-  },
-  legendItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    fontSize: '12px',
-  },
-  legendDot: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-  },
-  legendText: {
-    color: 'var(--text-secondary)',
-  },
-  overdueSection: {
-    padding: '24px',
-    border: '1px solid rgba(244,63,94,0.2)',
-  },
-  overdueList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  overdueItem: {
-    backgroundColor: 'rgba(244, 63, 94, 0.03)',
-    border: '1px solid rgba(244, 63, 94, 0.15)',
-    borderRadius: '12px',
-    padding: '14px 18px',
-  },
-  overdueHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  overdueNumber: {
-    fontFamily: 'monospace',
-    fontSize: '12px',
-    color: 'var(--accent-rose)',
-    fontWeight: '600',
-  },
-  overdueTitle: {
-    fontSize: '14.5px',
-    fontWeight: '600',
-    color: '#fff',
-    margin: '4px 0 0 0',
-  },
-  overdueMeta: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    marginTop: '6px',
-    margin: 0,
-  },
-  emptyText: {
-    fontSize: '13px',
-    color: 'var(--text-muted)',
-    textAlign: 'center',
-    padding: '16px 0',
-  },
 };
+

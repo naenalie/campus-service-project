@@ -18,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -56,13 +56,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // 2. Aksi Login
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     setIsLoading(true);
     try {
       const data = await api.login(email, password);
       localStorage.setItem('auth_token', data.token);
       setToken(data.token);
       setUser(data.user);
+      return data.user; // Return user agar LoginPage bisa redirect berdasarkan role
     } catch (error) {
       localStorage.removeItem('auth_token');
       setToken(null);

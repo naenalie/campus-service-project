@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ThemeToggle } from '../components/ThemeToggle';
 import * as api from '../services/api';
 
 export const RequestDetailPage: React.FC = () => {
@@ -80,7 +79,6 @@ export const RequestDetailPage: React.FC = () => {
     try {
       await api.addComment(id, newComment.trim());
       setNewComment('');
-      // Reload detail tiket untuk memuat list komentar terbaru
       const data = await api.getRequestDetail(id);
       setRequest(data);
     } catch (err: any) {
@@ -130,7 +128,6 @@ export const RequestDetailPage: React.FC = () => {
     setIsActionLoading(true);
     setShowPriorityDropdown(false);
     try {
-      // Simulasikan pemicu patch priority admin
       const response = await fetch(`/api/requests/${id}/priority`, {
         method: 'PATCH',
         headers: {
@@ -195,9 +192,8 @@ export const RequestDetailPage: React.FC = () => {
   };
 
   const handleCompleteTaskTech = () => {
-    // Kita arahkan ke modal input penyelesaian yang di-handle di halaman atau prompt
     const notes = window.prompt('Masukkan catatan penyelesaian perbaikan:');
-    if (notes === null) return; // cancel
+    if (notes === null) return;
     if (!notes.trim()) {
       alert('Catatan penyelesaian wajib diisi!');
       return;
@@ -222,24 +218,25 @@ export const RequestDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={localStyles.loadingContainer}>
-        <div className="shimmer" style={{ width: '100%', height: '140px', borderRadius: '20px', marginBottom: '20px' }}></div>
-        <div className="shimmer" style={{ width: '100%', height: '100px', borderRadius: '20px', marginBottom: '20px' }}></div>
-        <div className="shimmer" style={{ width: '100%', height: '180px', borderRadius: '20px' }}></div>
+      <div style={localStyles.pageContainer}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '640px' }}>
+          <div style={{ background: '#D2DDD4', height: '140px', borderRadius: '40px' }}></div>
+          <div style={{ background: '#D2DDD4', height: '240px', borderRadius: '40px' }}></div>
+        </div>
       </div>
     );
   }
 
   if (error || !request) {
     return (
-      <div style={localStyles.errorContainer}>
-        <div className="glass-card-strong" style={localStyles.errorCard}>
+      <div style={localStyles.pageContainer}>
+        <div className="nature-main-card" style={{ maxWidth: '480px', textAlign: 'center' }}>
           <span style={{ fontSize: '48px' }}>🚫</span>
-          <h2 style={{ color: 'var(--accent-rose)', margin: '14px 0 6px 0' }}>Laporan Tidak Ditemukan</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
+          <h2 style={{ color: '#991B1B', margin: '14px 0 6px 0' }}>Laporan Tidak Ditemukan</h2>
+          <p style={{ color: '#68776B', fontSize: '14px', marginBottom: '24px' }}>
             {error || 'Laporan keluhan yang Anda cari tidak tersedia di sistem.'}
           </p>
-          <button onClick={handleBack} className="btn-glass">
+          <button onClick={handleBack} className="nature-pill active" style={{ width: '100%', justifyContent: 'center' }}>
             ← Kembali ke Beranda
           </button>
         </div>
@@ -252,72 +249,79 @@ export const RequestDetailPage: React.FC = () => {
   return (
     <div style={localStyles.pageContainer}>
       
-      {/* Top sticky navbar */}
-      <div style={localStyles.topBar}>
-        <button onClick={handleBack} className="btn-glass">
+      {/* Top Navbar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '640px', marginBottom: '24px', alignItems: 'center' }}>
+        <button onClick={handleBack} className="nature-pill inactive">
           ← Kembali
         </button>
-        <span style={localStyles.ticketIdHeader}>{request.request_number}</span>
-        <ThemeToggle />
+        <span className="glass-card" style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '800', backgroundColor: 'rgba(255, 255, 255, 0.15)', padding: '8px 16px', borderRadius: '9999px', border: '1px solid rgba(255, 255, 255, 0.4)' }}>
+          {request.request_number}
+        </span>
       </div>
 
-      <div className="animate-in" style={localStyles.contentWrapper}>
+      <div style={{ width: '100%', maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* 1. HEADER CARD (INFO UTAMA) */}
-        <div className="glass-card" style={localStyles.infoCard}>
-          <h1 style={localStyles.ticketTitle}>{request.title}</h1>
+        <div className="nature-main-card">
+          <span className="nature-micro-label" style={{ color: '#8B5CF6' }}>TIKET KELUHAN</span>
+          <h1 className="nature-huge-header" style={{ fontSize: '28px', margin: '4px 0 16px 0' }}>{request.title}</h1>
           
-          <div style={localStyles.badgesRow}>
-            <span className={`status-badge status-${request.status.toLowerCase().replace('_', '-')}`}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            <span style={{ backgroundColor: '#101411', color: '#D4E875', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px', textTransform: 'uppercase' }}>
               {request.status.replace('_', ' ')}
             </span>
-            <span style={{ ...localStyles.badgeText, backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-amber)' }}>
+            <span style={{ backgroundColor: '#FEF3C7', color: '#B45309', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px', textTransform: 'uppercase' }}>
               ⚡ {request.priority}
             </span>
-            <span style={{ ...localStyles.badgeText, backgroundColor: 'rgba(20, 184, 166, 0.1)', color: 'var(--accent-teal)' }}>
+            <span style={{ backgroundColor: '#D1FAE5', color: '#047857', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px', textTransform: 'uppercase' }}>
               🔧 {request.category}
             </span>
           </div>
 
-          <div style={localStyles.metaDetails}>
-            <p>📍 Lokasi: <strong>{request.location}</strong></p>
-            <p>👤 Dilaporkan oleh: <strong>Gwen</strong> • {formatTime(request.created_at)}</p>
+          <div style={{ borderTop: '1px solid #E0E8E1', paddingTop: '16px', fontSize: '14px', color: '#56665A', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span>📍 Lokasi: <strong>{request.location}</strong></span>
+            <span>🕒 Dilaporkan pada: <strong>{formatTime(request.created_at)}</strong></span>
           </div>
         </div>
 
         {/* 2. DESKRIPSI CARD */}
-        <div className="glass-card" style={localStyles.sectionCard}>
-          <h3 style={localStyles.sectionTitle}>Deskripsi Kerusakan</h3>
-          <p style={localStyles.descText}>{request.description}</p>
+        <div className="nature-main-card">
+          <span className="nature-micro-label">DESKRIPSI MASALAH</span>
+          <p style={{ fontSize: '15px', color: '#101411', lineHeight: '1.6', margin: '8px 0 0 0' }}>{request.description}</p>
         </div>
 
         {/* 3. RIWAYAT TIMELINE STATUS */}
-        <div className="glass-card" style={localStyles.sectionCard}>
-          <h3 style={localStyles.sectionTitle}>Riwayat Penanganan Tiket</h3>
+        <div className="nature-main-card">
+          <span className="nature-micro-label">TIMELINE PENANGANAN</span>
           
-          <div style={localStyles.timeline}>
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: '16px' }}>
             {request.status_history?.map((h: any, index: number) => {
               const isLatest = index === request.status_history.length - 1;
               return (
-                <div key={h.id} style={localStyles.timelineItem}>
-                  <div style={localStyles.timelineLeft}>
+                <div key={h.id} style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', width: '16px' }}>
                     <div 
                       style={{ 
-                        ...localStyles.timelineDot,
-                        backgroundColor: isLatest ? 'var(--accent-purple)' : 'var(--text-muted)',
-                        boxShadow: isLatest ? '0 0 8px var(--accent-purple)' : 'none'
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        zIndex: 2,
+                        marginTop: '6px',
+                        backgroundColor: isLatest ? '#101411' : '#8E9A90',
                       }}
                     ></div>
-                    {index < request.status_history.length - 1 && <div style={localStyles.timelineLine}></div>}
+                    {index < request.status_history.length - 1 && (
+                      <div style={{ width: '2px', backgroundColor: '#C0D0C4', position: 'absolute', top: '18px', bottom: '-12px', zIndex: 1 }}></div>
+                    )}
                   </div>
-                  <div style={localStyles.timelineRight}>
-                    <div style={localStyles.timelineHeader}>
-                      <span style={{ fontWeight: '600', color: isLatest ? '#fff' : 'var(--text-primary)' }}>
+                  <div style={{ flex: 1, paddingBottom: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+                      <span style={{ fontWeight: '800', color: isLatest ? '#101411' : '#56665A' }}>
                         {h.new_status.replace('_', ' ')}
                       </span>
-                      <span style={localStyles.timelineTime}>{formatTime(h.changed_at)}</span>
+                      <span style={{ fontSize: '11px', color: '#8E9A90', fontWeight: '700' }}>{formatTime(h.changed_at)}</span>
                     </div>
-                    {h.note && <p style={localStyles.timelineNote}>{h.note}</p>}
+                    {h.note && <p style={{ fontSize: '13px', color: '#68776B', margin: '4px 0 0 0', lineHeight: 1.4 }}>{h.note}</p>}
                   </div>
                 </div>
               );
@@ -326,85 +330,95 @@ export const RequestDetailPage: React.FC = () => {
         </div>
 
         {/* 4. SEKSI KOMENTAR */}
-        <div className="glass-card" style={localStyles.sectionCard}>
-          <h3 style={localStyles.sectionTitle}>Diskusi & Catatan Publik</h3>
+        <div className="nature-main-card">
+          <span className="nature-micro-label">DISKUSI & KOORDINASI</span>
 
-          <div style={localStyles.commentsList}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '16px 0' }}>
             {request.comments?.length === 0 ? (
-              <p style={localStyles.emptyComments}>Belum ada komentar.</p>
+              <p style={{ fontSize: '13px', color: '#8E9A90', textAlign: 'center', padding: '12px 0' }}>Belum ada komentar.</p>
             ) : (
               request.comments?.map((c: any) => (
-                <div key={c.id} style={localStyles.commentItem}>
-                  <div style={localStyles.avatar}>
-                    {user?.id === c.user_id ? 'Me' : '👤'}
+                <div key={c.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', backgroundColor: '#F3F7F4', padding: '16px', borderRadius: '24px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#101411', color: '#D4E875', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800' }}>
+                    {user?.id === c.user_id ? 'ME' : '👤'}
                   </div>
-                  <div style={localStyles.commentContent}>
-                    <div style={localStyles.commentHeader}>
-                      <span style={localStyles.commentUser}>Pengguna</span>
-                      <span style={localStyles.commentTime}>{formatTime(c.created_at)}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px', fontWeight: '700' }}>
+                      <span style={{ color: '#101411' }}>{user?.id === c.user_id ? 'Anda' : 'Pengguna'}</span>
+                      <span style={{ color: '#8E9A90' }}>{formatTime(c.created_at)}</span>
                     </div>
-                    <p style={localStyles.commentText}>{c.content}</p>
+                    <p style={{ fontSize: '13.5px', color: '#56665A', margin: 0, lineHeight: 1.4 }}>{c.content}</p>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Form Kirim Komentar */}
           {!isClosed ? (
-            <form onSubmit={handleCommentSubmit} style={localStyles.commentForm}>
+            <form onSubmit={handleCommentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid #E0E8E1', paddingTop: '20px' }}>
               <textarea
                 placeholder="Tulis komentar/catatan di sini..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 disabled={isSubmittingComment}
-                className="neu-input"
-                style={{ minHeight: '60px', padding: '10px 14px', resize: 'vertical' }}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '24px',
+                  border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  color: 'inherit',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  outline: 'none',
+                  minHeight: '60px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
                 required
               />
               <button 
                 type="submit" 
                 disabled={isSubmittingComment}
-                className="btn-primary"
+                className="nature-pill active"
                 style={{ alignSelf: 'flex-end', padding: '8px 16px', fontSize: '13px' }}
               >
                 {isSubmittingComment ? 'Mengirim...' : 'Kirim →'}
               </button>
             </form>
           ) : (
-            <p style={localStyles.lockedText}>🔒 Kolom diskusi telah dikunci karena tiket telah ditutup.</p>
+            <p style={{ fontSize: '13px', color: '#8E9A90', textAlign: 'center', paddingTop: '12px' }}>🔒 Kolom diskusi telah dikunci karena tiket telah ditutup.</p>
           )}
         </div>
 
-        {/* 5. CONDITIONAL ACTION BUTTONS BAR */}
+        {/* 5. ACTION CONTROL BAR */}
         {!isClosed && (
-          <div className="glass-card-strong" style={localStyles.actionsBar}>
+          <div className="nature-main-card" style={{ padding: '24px' }}>
             
             {/* AKSES PELAPOR & status RESOLVED */}
             {user?.role === 'PELAPOR' && request.status === 'RESOLVED' && (
-              <div style={localStyles.flexRow}>
+              <div style={{ display: 'flex', gap: '16px' }}>
                 <button 
                   onClick={handleConfirmAccept}
                   disabled={isActionLoading}
-                  className="btn-primary"
-                  style={{ background: 'linear-gradient(135deg, var(--status-resolved), var(--accent-teal))', flex: 1 }}
+                  className="nature-pill active"
+                  style={{ flex: 1, justifyContent: 'center' }}
                 >
                   Setuju & Konfirmasi Selesai
                 </button>
                 <button 
                   onClick={() => setShowRejectModal(true)}
                   disabled={isActionLoading}
-                  className="btn-glass"
-                  style={{ borderColor: 'var(--accent-rose)', color: 'var(--accent-rose)', flex: 1 }}
+                  className="nature-pill inactive"
+                  style={{ flex: 1, justifyContent: 'center', color: '#991B1B' }}
                 >
-                  Tidak Setuju & Ajukan Ulang
+                  Tidak Setuju & Komplain
                 </button>
               </div>
             )}
 
             {/* AKSES ADMINISTRATOR (Dropdown controls) */}
             {user?.role === 'ADMIN' && (
-              <div style={localStyles.adminActionsRow}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
                 
                 {/* 1. Dropdown Ubah Status */}
                 <div style={{ position: 'relative' }}>
@@ -414,12 +428,12 @@ export const RequestDetailPage: React.FC = () => {
                       setShowAssignDropdown(false);
                       setShowPriorityDropdown(false);
                     }}
-                    className="btn-glass"
+                    className="nature-pill inactive"
                   >
                     Ubah Status ▾
                   </button>
                   {showStatusDropdown && (
-                    <div className="glass-card-strong" style={localStyles.dropdownMenu}>
+                    <div style={localStyles.dropdownMenu}>
                       <button onClick={() => handleUpdateStatusAdmin('UNDER_REVIEW')} style={localStyles.dropdownItem}>UNDER REVIEW</button>
                       <button onClick={() => handleUpdateStatusAdmin('CLOSED')} style={localStyles.dropdownItem}>CLOSED (TUTUP)</button>
                     </div>
@@ -435,14 +449,14 @@ export const RequestDetailPage: React.FC = () => {
                         setShowStatusDropdown(false);
                         setShowPriorityDropdown(false);
                       }}
-                      className="btn-glass"
+                      className="nature-pill inactive"
                     >
                       Tugaskan Teknisi ▾
                     </button>
                     {showAssignDropdown && (
-                      <div className="glass-card-strong" style={localStyles.dropdownMenu}>
+                      <div style={localStyles.dropdownMenu}>
                         {technicians.length === 0 ? (
-                          <span style={localStyles.dropdownMuted}>Belum ada teknisi aktif</span>
+                          <span style={{ padding: '10px 16px', color: '#8E9A90', fontSize: '12px' }}>Belum ada teknisi aktif</span>
                         ) : (
                           technicians.map(t => (
                             <button 
@@ -467,12 +481,12 @@ export const RequestDetailPage: React.FC = () => {
                       setShowStatusDropdown(false);
                       setShowAssignDropdown(false);
                     }}
-                    className="btn-glass"
+                    className="nature-pill inactive"
                   >
                     Set Prioritas ▾
                   </button>
                   {showPriorityDropdown && (
-                    <div className="glass-card-strong" style={localStyles.dropdownMenu}>
+                    <div style={localStyles.dropdownMenu}>
                       <button onClick={() => handleUpdatePriority('LOW')} style={localStyles.dropdownItem}>LOW</button>
                       <button onClick={() => handleUpdatePriority('MEDIUM')} style={localStyles.dropdownItem}>MEDIUM</button>
                       <button onClick={() => handleUpdatePriority('HIGH')} style={localStyles.dropdownItem}>HIGH</button>
@@ -486,13 +500,13 @@ export const RequestDetailPage: React.FC = () => {
 
             {/* AKSES TEKNISI (Jika tiket dialokasikan padanya) */}
             {user?.role === 'TEKNISI' && request.assigned_to === user.id && (
-              <div style={localStyles.flexRow}>
+              <div style={{ display: 'flex', gap: '16px' }}>
                 {request.status === 'ASSIGNED' && (
                   <button 
                     onClick={handleStartTaskTech}
                     disabled={isActionLoading}
-                    className="btn-primary"
-                    style={{ width: '100%' }}
+                    className="nature-pill active"
+                    style={{ width: '100%', justifyContent: 'center' }}
                   >
                     Mulai Pengerjaan Perbaikan →
                   </button>
@@ -501,8 +515,8 @@ export const RequestDetailPage: React.FC = () => {
                   <button 
                     onClick={handleCompleteTaskTech}
                     disabled={isActionLoading}
-                    className="btn-primary"
-                    style={{ width: '100%', background: 'linear-gradient(135deg, var(--status-resolved), var(--accent-teal))' }}
+                    className="nature-pill active"
+                    style={{ width: '100%', justifyContent: 'center' }}
                   >
                     Tandai Perbaikan Selesai ✓
                   </button>
@@ -518,9 +532,9 @@ export const RequestDetailPage: React.FC = () => {
       {/* MODAL PELAPOR: Input Catatan Penolakan (Tidak Setuju) */}
       {showRejectModal && (
         <div style={localStyles.modalOverlay}>
-          <div className="glass-card-strong animate-in" style={localStyles.modalCard}>
-            <h3 className="text-heading" style={{ color: '#fff', marginBottom: '12px' }}>Ajukan Ulang Perbaikan</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '16px' }}>
+          <div className="nature-main-card" style={{ width: '100%', maxWidth: '440px' }}>
+            <h3 style={{ fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Ajukan Ulang Perbaikan</h3>
+            <p style={{ color: '#68776B', fontSize: '13px', marginBottom: '20px' }}>
               Berikan catatan penolakan mengenai bagian mana dari perbaikan yang belum selesai atau tidak memuaskan.
             </p>
 
@@ -530,25 +544,38 @@ export const RequestDetailPage: React.FC = () => {
                 value={rejectionNotes}
                 onChange={(e) => setRejectionNotes(e.target.value)}
                 disabled={isActionLoading}
-                className="neu-input"
-                style={{ minHeight: '100px', resize: 'vertical', marginBottom: '24px' }}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '24px',
+                  border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  color: 'inherit',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  outline: 'none',
+                  minHeight: '100px',
+                  resize: 'vertical',
+                  marginBottom: '24px',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
                 required
               />
 
-              <div style={localStyles.modalButtons}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button 
                   type="button" 
                   onClick={() => setShowRejectModal(false)}
                   disabled={isActionLoading}
-                  className="btn-glass"
+                  className="nature-pill inactive"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit" 
                   disabled={isActionLoading}
-                  className="btn-primary"
-                  style={{ background: 'linear-gradient(135deg, var(--accent-rose), var(--accent-rose))' }}
+                  className="nature-pill active"
+                  style={{ backgroundColor: '#991B1B', color: '#FFFFFF' }}
                 >
                   Kirim Komplain
                 </button>
@@ -562,226 +589,16 @@ export const RequestDetailPage: React.FC = () => {
   );
 };
 
-// Local Styles
 const localStyles: Record<string, React.CSSProperties> = {
   pageContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     minHeight: '100vh',
-    width: '100vw',
-    position: 'relative',
-    padding: '80px 20px 40px 20px',
-    zIndex: 1,
-  },
-  topBar: {
-    position: 'absolute',
-    top: '24px',
-    left: '24px',
-    right: '24px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  ticketIdHeader: {
-    fontFamily: 'monospace',
-    fontSize: '15px',
-    fontWeight: '700',
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    border: '1px solid var(--border-glass)',
-    padding: '6px 16px',
-    borderRadius: '12px',
-  },
-  contentWrapper: {
     width: '100%',
-    maxWidth: '640px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  infoCard: {
-    padding: '28px 24px',
-  },
-  ticketTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#fff',
-    margin: '0 0 14px 0',
-  },
-  badgesRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '10px',
-    marginBottom: '20px',
-  },
-  badgeText: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 10px',
-    borderRadius: 'var(--radius-pill)',
-    fontSize: '12px',
-    fontWeight: '600',
-  },
-  metaDetails: {
-    borderTop: '1px solid var(--border-subtle)',
-    paddingTop: '16px',
-    fontSize: '13px',
-    color: 'var(--text-secondary)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  sectionCard: {
+    backgroundColor: 'transparent',
     padding: '24px',
-  },
-  sectionTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '15px',
-    fontWeight: '700',
-    color: 'var(--accent-purple)',
-    marginBottom: '16px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-  },
-  descText: {
-    fontSize: '14px',
-    color: '#f8fafc',
-    lineHeight: '1.6',
-  },
-  timeline: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0',
-  },
-  timelineItem: {
-    display: 'flex',
-    gap: '16px',
-  },
-  timelineLeft: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    position: 'relative',
-    width: '16px',
-  },
-  timelineDot: {
-    width: '12px',
-    height: '12px',
-    borderRadius: '50%',
-    zIndex: 2,
-    marginTop: '6px',
-  },
-  timelineLine: {
-    width: '2px',
-    backgroundColor: 'var(--border-subtle)',
-    position: 'absolute',
-    top: '18px',
-    bottom: '-12px',
-    zIndex: 1,
-  },
-  timelineRight: {
-    flex: 1,
-    paddingBottom: '24px',
-  },
-  timelineHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '13.5px',
-  },
-  timelineTime: {
-    fontSize: '11px',
-    color: 'var(--text-muted)',
-  },
-  timelineNote: {
-    fontSize: '12.5px',
-    color: 'var(--text-secondary)',
-    marginTop: '4px',
-    margin: 0,
-    lineHeight: '1.4',
-  },
-  commentsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-    marginBottom: '20px',
-  },
-  emptyComments: {
-    fontSize: '13px',
-    color: 'var(--text-muted)',
-    textAlign: 'center',
-    padding: '12px 0',
-  },
-  commentItem: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    padding: '12px 16px',
-    borderRadius: '12px',
-    border: '1px solid var(--border-subtle)',
-  },
-  avatar: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    backgroundColor: 'var(--accent-purple)',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '11px',
-    fontWeight: '700',
-  },
-  commentContent: {
-    flex: 1,
-  },
-  commentHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '12px',
-    marginBottom: '4px',
-  },
-  commentUser: {
-    fontWeight: '600',
-    color: 'var(--text-primary)',
-  },
-  commentTime: {
-    color: 'var(--text-muted)',
-  },
-  commentText: {
-    fontSize: '13px',
-    color: '#cbd5e1',
-    lineHeight: '1.4',
-    margin: 0,
-  },
-  commentForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    borderTop: '1px solid var(--border-subtle)',
-    paddingTop: '20px',
-  },
-  lockedText: {
-    fontSize: '13px',
-    color: 'var(--text-muted)',
-    textAlign: 'center',
-    paddingTop: '12px',
-  },
-  actionsBar: {
-    padding: '20px 24px',
-  },
-  flexRow: {
-    display: 'flex',
-    gap: '16px',
-  },
-  adminActionsRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '12px',
-    justifyContent: 'center',
+    boxSizing: 'border-box',
   },
   dropdownMenu: {
     position: 'absolute',
@@ -793,77 +610,43 @@ const localStyles: Record<string, React.CSSProperties> = {
     zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 10px 20px rgba(0,0,0,0.5)',
+    backgroundColor: '#101411',
+    borderRadius: '24px',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+    overflow: 'hidden',
   },
   dropdownItem: {
     width: '100%',
     background: 'none',
     border: 'none',
-    padding: '10px 16px',
+    padding: '12px 20px',
     textAlign: 'left',
-    color: '#cbd5e1',
-    fontSize: '12.5px',
+    color: '#FFFFFF',
+    fontSize: '13px',
+    fontWeight: '700',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
-  },
-  dropdownMuted: {
-    padding: '10px 16px',
-    color: 'var(--text-muted)',
-    fontSize: '12px',
-  },
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-    width: '100%',
-    maxWidth: '640px',
-    margin: '80px auto',
-  },
-  errorContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    padding: '20px',
-  },
-  errorCard: {
-    maxWidth: '400px',
-    width: '100%',
-    textAlign: 'center',
-    padding: '40px 24px',
   },
   modalOverlay: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    backdropFilter: 'blur(8px)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 200,
     padding: '20px',
   },
-  modalCard: {
-    width: '100%',
-    maxWidth: '440px',
-    padding: '32px 24px',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.7)',
-  },
-  modalButtons: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '12px',
-  },
 };
 
-// CSS Hover Highlight untuk Dropdown Items
 if (typeof document !== 'undefined') {
   const styleTag = document.createElement('style');
   styleTag.innerHTML = `
     .dropdownItem:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-      color: #fff;
+      background-color: #D4E875 !important;
+      color: #101411 !important;
     }
   `;
   document.head.appendChild(styleTag);
 }
+
