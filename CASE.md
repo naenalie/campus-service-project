@@ -4,7 +4,7 @@
 
 ### Latar Belakang
 
-Kampus Universitas Klabat (UNKLAB) memiliki ratusan ruang kelas, laboratorium, dan fasilitas umum yang memerlukan pemeliharaan rutin maupun perbaikan mendesak. Selama ini, proses pelaporan kerusakan fasilitas dilakukan secara tidak terstruktur — melalui WhatsApp, memo cetak, atau laporan verbal langsung ke staf tata usaha. Kondisi ini menyebabkan banyak laporan yang hilang, lambat ditangani, atau bahkan diabaikan tanpa diketahui pelapor.
+Kampus Universitas Klabat (UNKLAB) memiliki banyak ruang kelas, laboratorium, dan fasilitas umum yang memerlukan pemeliharaan rutin maupun perbaikan mendesak. Selama ini, proses pelaporan kerusakan fasilitas dilakukan secara tidak terstruktur — melalui WhatsApp, memo cetak, atau laporan verbal langsung ke staf tata usaha. Kondisi ini menyebabkan banyak laporan yang hilang, lambat ditangani, atau bahkan diabaikan tanpa diketahui pelapor.
 
 Proyek ini bertujuan membangun sebuah aplikasi web terpusat untuk menerima, meneruskan, dan memantau penanganan laporan kerusakan fasilitas kampus secara transparan dan terstruktur.
 
