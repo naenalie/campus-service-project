@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
-import { CampusMap } from '../components/CampusMap';
+
 
 export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -20,7 +20,7 @@ export const AdminDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
+
 
   // Navigasi aktif di sidebar
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -82,10 +82,7 @@ export const AdminDashboard: React.FC = () => {
       ? req.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
         req.request_number.toLowerCase().includes(searchKeyword.toLowerCase())
       : true;
-    const matchesBuilding = selectedBuilding
-      ? req.location.toLowerCase().includes(selectedBuilding.toLowerCase())
-      : true;
-    return matchesStatus && matchesCategory && matchesKeyword && matchesBuilding;
+    return matchesStatus && matchesCategory && matchesKeyword;
   });
 
 
@@ -174,14 +171,7 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                 </div>
 
-                {/* 2D CAMPUS MAP VISUALIZATION FOR ADMIN */}
-                <div style={{ marginBottom: '28px' }}>
-                  <CampusMap 
-                    requests={requests}
-                    selectedBuilding={selectedBuilding}
-                    onSelectBuilding={setSelectedBuilding}
-                  />
-                </div>
+
 
                 {/* GRAPHICS & RECENT LIST */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
