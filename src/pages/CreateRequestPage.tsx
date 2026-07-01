@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 
-const BUILDINGS = ['GK1', 'GK2', 'GK3', 'Crystal', 'Chapel', 'Hall', 'Asrama'];
+const BUILDINGS = ['GK1', 'GK2', 'GK3', 'GA', 'Sport Hall', 'Lapangan Tennis', 'Pioneer Chapel', 'Prayer Garden', 'Study Garden'];
 const CATEGORIES = ['Internet', 'AC', 'Peralatan Kelas', 'Kebersihan', 'Lainnya'];
 
 export const CreateRequestPage: React.FC = () => {

@@ -84,7 +84,7 @@ export const ManagerDashboard: React.FC = () => {
   });
 
   // 3. BUILDING DISTRIBUTION
-  const buildingsList = ['GK1', 'GK2', 'GK3', 'GA', 'FWC', 'Chapel', 'Sport Hall', 'Lapangan Tenis', 'Kantin'];
+  const buildingsList = ['GK1', 'GK2', 'GK3', 'GA', 'Sport Hall', 'Lapangan Tennis', 'Pioneer Chapel', 'Prayer Garden', 'Study Garden'];
   const buildingCounts: Record<string, number> = {};
   buildingsList.forEach(b => {
     buildingCounts[b] = 0;
@@ -97,10 +97,9 @@ export const ManagerDashboard: React.FC = () => {
     for (const b of buildingsList) {
       if (
         loc.includes(b.toLowerCase()) || 
-        (b === 'Chapel' && loc.includes('pc')) || 
+        (b === 'Pioneer Chapel' && (loc.includes('chapel') || loc.includes('pc'))) || 
         (b === 'Sport Hall' && loc.includes('sh')) || 
-        (b === 'Lapangan Tenis' && loc.includes('lt')) || 
-        (b === 'Kantin' && loc.includes('kt'))
+        (b === 'Lapangan Tennis' && (loc.includes('tennis') || loc.includes('tenis') || loc.includes('lt')))
       ) {
         buildingCounts[b]++;
         matched = true;
