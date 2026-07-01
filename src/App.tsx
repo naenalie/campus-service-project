@@ -143,7 +143,9 @@ const App: React.FC = () => {
               path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AdminDashboard />
+                  <LayoutWrapper>
+                    <AdminDashboard />
+                  </LayoutWrapper>
                 </ProtectedRoute>
               }
             />
@@ -151,7 +153,9 @@ const App: React.FC = () => {
               path="/teknisi"
               element={
                 <ProtectedRoute allowedRoles={['TEKNISI']}>
-                  <TechnicianPage />
+                  <LayoutWrapper>
+                    <TechnicianPage />
+                  </LayoutWrapper>
                 </ProtectedRoute>
               }
             />
@@ -159,7 +163,9 @@ const App: React.FC = () => {
               path="/manajer"
               element={
                 <ProtectedRoute allowedRoles={['MANAJER']}>
-                  <ManagerDashboard />
+                  <LayoutWrapper>
+                    <ManagerDashboard />
+                  </LayoutWrapper>
                 </ProtectedRoute>
               }
             />

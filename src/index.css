@@ -50,7 +50,11 @@
 }
 
 #root {
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  border-inline: none !important;
+  border: none !important;
+  margin: 0 !important;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

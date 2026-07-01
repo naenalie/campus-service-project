@@ -410,15 +410,17 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'relative',
     width: '100%',
     minHeight: '480px',
-    backgroundColor: '#F1F5F9', /* Default light base */
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', /* Frosted glass base */
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
     borderRadius: '24px',
-    border: '1px solid rgba(0,0,0,0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.7)',
     overflow: 'hidden',
     boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
   },
   mapHeader: {
     padding: '16px 24px',
-    borderBottom: '1px solid rgba(0,0,0,0.05)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -426,7 +428,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '12px',
     zIndex: 5,
     position: 'relative',
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   headerIndicator: {
     display: 'flex',
@@ -444,8 +446,8 @@ const styles: Record<string, React.CSSProperties> = {
   headerTitle: {
     fontFamily: "'Outfit', sans-serif",
     fontSize: '14px',
-    fontWeight: '600',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: '#101411',
   },
   legend: {
     display: 'flex',
@@ -456,7 +458,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    color: '#475569',
+    color: '#101411',
+    fontWeight: '600',
   },
   legendGreen: {
     width: '10px',

@@ -2,15 +2,14 @@
 // Halaman Penugasan Kerja & Progress Teknisi (FR-05, FR-06) dengan Peta Kampus Interaktif
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext';
 import { CampusMap } from '../components/CampusMap';
 import * as api from '../services/api';
 
 export const TechnicianPage: React.FC = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [requests, setRequests] = useState<any[]>([]);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
@@ -44,16 +43,7 @@ export const TechnicianPage: React.FC = () => {
     }
   };
 
-  const handleLogout = async () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar?')) {
-      try {
-        await logout();
-        navigate('/login');
-      } catch (err) {
-        console.error('Logout error:', err);
-      }
-    }
-  };
+
 
   // 1. Memulai Pengerjaan Tugas (ASSIGNED -> IN_PROGRESS)
   const handleStartTask = async (taskId: string) => {
@@ -108,24 +98,14 @@ export const TechnicianPage: React.FC = () => {
   return (
     <div style={localStyles.layoutWrapper}>
       
-      {/* HEADER BANNER SOLID */}
-      <header style={{ backgroundColor: '#101411', padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '24px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>
-            Tugas Perbaikan (Teknisi)
-          </h2>
-          <p style={{ fontSize: '13px', color: '#8E9A90', marginTop: '4px', margin: 0 }}>
-            Daftar Penugasan Kerja Sarana Kampus UNKLAB
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#FFFFFF' }}>
-            👤 {user?.name}
-          </span>
-          <button onClick={handleLogout} className="nature-pill inactive" style={{ color: '#EF4444' }}>
-            🚪 Keluar
-          </button>
-        </div>
+      {/* HEADER BANNER GLASS */}
+      <header style={{ marginBottom: '28px' }}>
+        <h1 className="nature-huge-header" style={{ fontSize: '32px', margin: 0 }}>
+          Tugas Perbaikan (Teknisi) 🔧
+        </h1>
+        <p style={{ fontSize: '14px', color: '#68776B', marginTop: '4px', margin: 0 }}>
+          Daftar Penugasan Kerja Sarana Kampus Universitas Klabat
+        </p>
       </header>
 
       {/* MAP & LIST CONTENT */}
@@ -159,13 +139,13 @@ export const TechnicianPage: React.FC = () => {
 
           {isLoading ? (
             <div style={{ display: 'flex', gap: '16px', overflowX: 'hidden' }}>
-              <div style={{ background: '#D2DDD4', width: '280px', height: '140px', borderRadius: '32px' }}></div>
-              <div style={{ background: '#D2DDD4', width: '280px', height: '140px', borderRadius: '32px' }}></div>
+              <div className="glass-card" style={{ width: '280px', height: '140px', borderRadius: '32px' }}></div>
+              <div className="glass-card" style={{ width: '280px', height: '140px', borderRadius: '32px' }}></div>
             </div>
           ) : error ? (
             <p style={{ color: '#DC2626', fontSize: '14px', fontWeight: '700' }}>{error}</p>
           ) : filteredTasks.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', backgroundColor: '#FFFFFF', borderRadius: '40px' }}>
+            <div className="glass-card" style={{ textAlign: 'center', padding: '40px 0', borderRadius: '40px' }}>
               <span style={{ fontSize: '32px' }}>🎉</span>
               <p style={{ color: '#68776B', fontSize: '14px', marginTop: '6px', fontWeight: '700', margin: 0 }}>
                 {selectedBuilding ? `Tidak ada tugas aktif di ${selectedBuilding}.` : 'Semua tugas selesai! Pekerjaan bagus.'}

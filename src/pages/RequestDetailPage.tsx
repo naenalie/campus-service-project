@@ -602,7 +602,7 @@ const localStyles: Record<string, React.CSSProperties> = {
   },
   dropdownMenu: {
     position: 'absolute',
-    bottom: '48px',
+    top: '44px',
     left: '50%',
     transform: 'translateX(-50%)',
     width: '180px',
@@ -610,9 +610,12 @@ const localStyles: Record<string, React.CSSProperties> = {
     zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#101411',
+    backgroundColor: 'rgba(16, 20, 17, 0.95)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
     borderRadius: '24px',
-    boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
     overflow: 'hidden',
   },
   dropdownItem: {

@@ -102,17 +102,17 @@ export const HomePage: React.FC = () => {
               <div 
                 className="nature-image-card" 
                 style={{ 
-                  backgroundImage: 'url("https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop")' 
+                  backgroundImage: 'url("/campus_maintenance_banner.png")' 
                 }}
               >
-                <div className="nature-image-card-overlay"></div>
+                <div className="nature-image-card-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 100%)' }}></div>
                 <div className="nature-image-card-content">
-                  <span className="nature-micro-label" style={{ color: '#D4E875' }}>KEGIATAN KAMPUS</span>
-                  <h2 style={{ fontSize: '28px', fontWeight: '800', margin: '4px 0 12px 0', letterSpacing: '-0.02em', color: '#FFFFFF', lineHeight: 1.2 }}>
-                    Weekend Campus Cleanup 2026
+                  <span className="nature-micro-label" style={{ color: '#D4E875', textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)' }}>LAYANAN SARPRAS</span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '800', margin: '4px 0 12px 0', letterSpacing: '-0.02em', color: '#FFFFFF', lineHeight: 1.2, textShadow: '0 2px 8px rgba(0, 0, 0, 0.9)' }}>
+                    Sistem Pemeliharaan Kampus UNKLAB
                   </h2>
-                  <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.85)', marginBottom: '24px' }}>
-                    Sabtu, 4 Juli • Kampus UNKLAB Airmadidi • 07:00 WITA. Mari jaga kebersihan lingkungan kelas dan asrama.
+                  <p style={{ fontSize: '14px', color: '#FFFFFF', marginBottom: '24px', fontWeight: '500', textShadow: '0 1px 6px rgba(0, 0, 0, 0.85)', lineHeight: '1.4' }}>
+                    Jaga kualitas fasilitas belajar mengajar. Laporkan segera setiap kerusakan sarana dan prasarana di lingkungan Universitas Klabat untuk penanganan cepat.
                   </p>
                   <Link to="/create" style={{ textDecoration: 'none' }}>
                     <button className="nature-pill active">

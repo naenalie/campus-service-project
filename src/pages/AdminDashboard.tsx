@@ -2,13 +2,12 @@
 // Halaman Dashboard Administrator Premium (FR-03, FR-04, FR-08, FR-10, FR-12)
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 
 export const AdminDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [summary, setSummary] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
@@ -48,16 +47,7 @@ export const AdminDashboard: React.FC = () => {
     }
   }
 
-  const handleLogout = async () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
-      try {
-        await logout();
-        navigate('/login');
-      } catch (err) {
-        console.error('Logout error:', err);
-      }
-    }
-  };
+
 
   const handleUserRoleChange = async (userId: string, newRole: string) => {
     try {
@@ -108,53 +98,33 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div style={localStyles.layoutContainer}>
       
-      {/* SIDEBAR NAVIGATION */}
-      <aside style={localStyles.sidebar}>
-        <div style={localStyles.sidebarHeader}>
-          <span style={{ fontSize: '32px' }}>🏛</span>
-          <div>
-            <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '18px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>UNKLAB</h2>
-            <p style={{ fontSize: '11px', color: '#8E9A90', textTransform: 'uppercase', fontWeight: '700', margin: 0 }}>Campus Services</p>
-          </div>
-        </div>
-
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+      {/* MAIN CONTAINER CONTENT */}
+      <main style={localStyles.mainContent}>
+        
+        {/* Horizontal Navigation Tab Bar */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setActiveTab('dashboard')} 
             className={`nature-pill ${activeTab === 'dashboard' ? 'active' : 'inactive'}`}
-            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'dashboard' ? '#101411' : '#FFFFFF' }}
+            style={{ padding: '8px 16px', fontSize: '13px' }}
           >
-            <span>📊</span> Dashboard
+            📊 Dashboard
           </button>
           <button 
             onClick={() => setActiveTab('requests')} 
             className={`nature-pill ${activeTab === 'requests' ? 'active' : 'inactive'}`}
-            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'requests' ? '#101411' : '#FFFFFF' }}
+            style={{ padding: '8px 16px', fontSize: '13px' }}
           >
-            <span>📋</span> Semua Laporan
+            📋 Semua Laporan
           </button>
           <button 
             onClick={() => setActiveTab('users')} 
             className={`nature-pill ${activeTab === 'users' ? 'active' : 'inactive'}`}
-            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'users' ? '#101411' : '#FFFFFF' }}
+            style={{ padding: '8px 16px', fontSize: '13px' }}
           >
-            <span>👥</span> Manajemen User
-          </button>
-        </nav>
-
-        <div style={{ marginTop: 'auto', borderTop: '1px solid #2B332E', paddingTop: '20px' }}>
-          <div style={{ padding: '0 8px', marginBottom: '16px' }}>
-            <p style={{ fontSize: '14px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>{user?.name}</p>
-            <p style={{ fontSize: '11px', color: '#D4E875', fontWeight: '700', margin: '2px 0 0 0' }}>{user?.role}</p>
-          </div>
-          <button onClick={handleLogout} className="nature-pill inactive" style={{ width: '100%', justifyContent: 'center', color: '#EF4444' }}>
-            🚪 Keluar
+            👥 Manajemen User
           </button>
         </div>
-      </aside>
-
-      {/* MAIN CONTAINER CONTENT */}
-      <main style={localStyles.mainContent}>
         
         {/* Header Section */}
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
@@ -427,7 +397,7 @@ const localStyles: Record<string, React.CSSProperties> = {
   layoutContainer: {
     display: 'flex',
     minHeight: '100vh',
-    width: '100vw',
+    width: '100%',
   },
   sidebar: {
     width: '280px',

@@ -2,13 +2,12 @@
 // Halaman Dashboard Eksekutif Manajer Fasilitas Kampus (FR-12) - Read Only & High Overview
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 
 export const ManagerDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Data States
   const [summary, setSummary] = useState<any>(null);
@@ -41,16 +40,7 @@ export const ManagerDashboard: React.FC = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleLogout = async () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar?')) {
-      try {
-        await logout();
-        navigate('/login');
-      } catch (err) {
-        console.error('Logout error:', err);
-      }
-    }
-  };
+
 
   // Agregasi Data Distribusi Gedung
   const getBuildingDistribution = () => {
@@ -137,46 +127,26 @@ export const ManagerDashboard: React.FC = () => {
   return (
     <div style={localStyles.layoutContainer}>
       
-      {/* SIDEBAR NAVIGATION */}
-      <aside style={localStyles.sidebar}>
-        <div style={localStyles.sidebarHeader}>
-          <span style={{ fontSize: '32px' }}>🏛</span>
-          <div>
-            <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '18px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>UNKLAB</h2>
-            <p style={{ fontSize: '11px', color: '#8E9A90', textTransform: 'uppercase', fontWeight: '700', margin: 0 }}>Campus Services</p>
-          </div>
-        </div>
-
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+      {/* MAIN CONTAINER CONTENT */}
+      <main style={localStyles.mainContent}>
+        
+        {/* Horizontal Navigation Tab Bar */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setActiveTab('overview')} 
             className={`nature-pill ${activeTab === 'overview' ? 'active' : 'inactive'}`}
-            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'overview' ? '#101411' : '#FFFFFF' }}
+            style={{ padding: '8px 16px', fontSize: '13px' }}
           >
-            <span>📊</span> Overview
+            📊 Overview
           </button>
           <button 
             onClick={() => setActiveTab('reports')} 
             className={`nature-pill ${activeTab === 'reports' ? 'active' : 'inactive'}`}
-            style={{ justifyContent: 'flex-start', padding: '12px 20px', width: '100%', color: activeTab === 'reports' ? '#101411' : '#FFFFFF' }}
+            style={{ padding: '8px 16px', fontSize: '13px' }}
           >
-            <span>📋</span> Semua Laporan
-          </button>
-        </nav>
-
-        <div style={{ marginTop: 'auto', borderTop: '1px solid #2B332E', paddingTop: '20px' }}>
-          <div style={{ padding: '0 8px', marginBottom: '16px' }}>
-            <p style={{ fontSize: '14px', fontWeight: '800', color: '#FFFFFF', margin: 0 }}>{user?.name}</p>
-            <p style={{ fontSize: '11px', color: '#D4E875', fontWeight: '700', margin: '2px 0 0 0' }}>{user?.role}</p>
-          </div>
-          <button onClick={handleLogout} className="nature-pill inactive" style={{ width: '100%', justifyContent: 'center', color: '#EF4444' }}>
-            🚪 Keluar
+            📋 Semua Laporan
           </button>
         </div>
-      </aside>
-
-      {/* MAIN CONTAINER CONTENT */}
-      <main style={localStyles.mainContent}>
         
         {/* Header Title */}
         <header style={{ marginBottom: '28px' }}>
@@ -358,7 +328,7 @@ const localStyles: Record<string, React.CSSProperties> = {
   layoutContainer: {
     display: 'flex',
     minHeight: '100vh',
-    width: '100vw',
+    width: '100%',
   },
   sidebar: {
     width: '280px',
