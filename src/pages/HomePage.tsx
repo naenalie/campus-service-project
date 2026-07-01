@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
+import { CampusMap } from '../components/CampusMap';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ export const HomePage: React.FC = () => {
   // Filters State
   const [statusFilter, setStatusFilter] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchRequests() {
@@ -58,7 +60,10 @@ export const HomePage: React.FC = () => {
       ? req.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
         req.request_number.toLowerCase().includes(searchKeyword.toLowerCase())
       : true;
-    return matchesStatus && matchesKeyword;
+    const matchesBuilding = selectedBuilding
+      ? req.location.toLowerCase().includes(selectedBuilding.toLowerCase())
+      : true;
+    return matchesStatus && matchesKeyword && matchesBuilding;
   });
 
   // Agregasi Statistik Ringkas
@@ -152,6 +157,15 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
+          </div>
+
+          {/* 2. CAMPUS MAP VISUALIZATION */}
+          <div style={{ marginBottom: '12px' }}>
+            <CampusMap 
+              requests={requests}
+              selectedBuilding={selectedBuilding}
+              onSelectBuilding={setSelectedBuilding}
+            />
           </div>
 
           {/* 3. REPORT LISTING SECTION */}
