@@ -1,8 +1,8 @@
 # Requirements Documentation
 
-This directory contains all requirements documents.
+Direktori ini berisi semua dokumen persyaratan.
 
-Files:
+Berkas:
 - inception.md
 - elicitation-pelapor.md, elicitation-administrator.md, elicitation-teknisi.md, elicitation-manajer-fasilitas.md
 - requirements.md (12 FR, 6 NFR, 6 BR, 10 US, 20 AC)
