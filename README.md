@@ -4,8 +4,6 @@ Aplikasi Web Sistem Pelaporan & Perawatan Sarana Prasarana Kampus Universitas Kl
 
 ## 🔗 URL Production & Dev Switcher
 - **Production URL**: [https://campus-service-project.officiallygwen.workers.dev](https://campus-service-project.officiallygwen.workers.dev)
-- **Dev Role Switcher**: [https://campus-service-project.officiallygwen.workers.dev/dev-switcher](https://campus-service-project.officiallygwen.workers.dev/dev-switcher)
-
 ---
 
 ## 👥 Akun Test Simulasi Role (Password: `test12345678`)
