@@ -6,7 +6,6 @@ Aplikasi Web Sistem Pelaporan & Perawatan Sarana Prasarana Kampus Universitas Kl
 
 - **Production URL**: [https://campus-service-project.officiallygwen.workers.dev](https://campus-service-project.officiallygwen.workers.dev)
 - **Health Check**: [https://campus-service-project.officiallygwen.workers.dev/api/health](https://campus-service-project.officiallygwen.workers.dev/api/health)
-- **Dev Role Switcher**: [https://campus-service-project.officiallygwen.workers.dev/dev-switcher](https://campus-service-project.officiallygwen.workers.dev/dev-switcher)
 
 ## Akun Test Simulasi Role
 
@@ -42,7 +41,3 @@ Deploy to Production:
 npm run deploy
 ```
 
-## Known Limitations
-
-- Halaman `/dev-switcher` hanya untuk demonstrasi role saat review. Hapus dari production jika dosen meminta tidak ada akses login cepat.
-- Pull Request publik yang terdeteksi di GitHub baru 1; rubrik tugas meminta minimal 6 PR, sehingga proses GitHub masih perlu dilengkapi melalui branch/PR terpisah.
