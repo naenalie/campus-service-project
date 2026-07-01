@@ -1,9 +1,10 @@
 // src/components/CampusMap.tsx
 // Peta Kampus UNKLAB 2D Landscape Flat & Interaktif (Design Premium, High-fidelity Vector Layout)
+// Dilengkapi dengan Penanda Jumlah Laporan Aktif, Efek Hover, Kompas, Legenda, dan Popup Info Detail
 
-import React, { useState } from 'react';
+import React from 'react';
 
-interface RequestItem {
+export interface RequestItem {
   id: string;
   request_number: string;
   title: string;
@@ -11,559 +12,939 @@ interface RequestItem {
   status: string;
 }
 
-interface CampusMapProps {
+export interface CampusMapProps {
   requests: RequestItem[];
   selectedBuilding: string | null;
   onSelectBuilding: (buildingId: string | null) => void;
 }
 
-interface Building {
+interface BuildingData {
   id: string;
   name: string;
-  floors: number;
-  description: string;
-  flatX: number;
-  flatY: number;
-  flatW: number;
-  flatH: number;
-  icon: string;
+  subLabel: string;
+  color: string;
+  markerX: number;
+  markerY: number;
+  labelX: number;
+  labelY: number;
 }
 
-export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding, onSelectBuilding }) => {
-  const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
+const getBuildingIdFromLocation = (location: string): string | null => {
+  const loc = location.toLowerCase();
+  if (loc.includes('gk1')) return 'GK1';
+  if (loc.includes('gk2')) return 'GK2';
+  if (loc.includes('gk3')) return 'GK3';
+  if (loc.includes('ga') || loc.includes('administrasi')) return 'GA';
+  if (loc.includes('fwc') || loc.includes('fern')) return 'FWC';
+  if (loc.includes('chapel')) return 'Chapel';
+  if (loc.includes('sport') || loc.includes('hall')) return 'SportHall';
+  if (loc.includes('tenis')) return 'Lapangan Tenis';
+  if (loc.includes('kantin')) return 'Kantin';
+  if (loc.includes('study')) return 'Study Garden';
+  if (loc.includes('prayer')) return 'Prayer Garden';
+  return null;
+};
 
-  // Daftar Gedung Utama UNKLAB (Sesuai Struktur Tata Letak Kampus Universitas Klabat)
-  const buildings: Building[] = [
-    {
-      id: 'GK3',
-      name: 'Gedung Kuliah 3 (GK3)',
-      floors: 3,
-      description: 'Gedung perkuliahan Fakultas Ekonomi & Bisnis serta Fakultas Filsafat.',
-      flatX: 60,
-      flatY: 50,
-      flatW: 190,
-      flatH: 55,
-      icon: '🏫'
-    },
-    {
-      id: 'GK2',
-      name: 'Gedung Kuliah 2 (GK2)',
-      floors: 3,
-      description: 'Gedung perkuliahan umum dengan fasilitas laboratorium komputer terpadu.',
-      flatX: 60,
-      flatY: 125,
-      flatW: 190,
-      flatH: 55,
-      icon: '💻'
-    },
-    {
-      id: 'GK1',
-      name: 'Gedung Kuliah 1 (GK1)',
-      floors: 3,
-      description: 'Fakultas Pertanian, Keperawatan, pusat layanan mahasiswa, dan administrasi keuangan.',
-      flatX: 60,
-      flatY: 200,
-      flatW: 190,
-      flatH: 55,
-      icon: '🏥'
-    },
-    {
-      id: 'Hall',
-      name: 'Fekon Hall & Gym',
-      floors: 2,
-      description: 'Auditorium utama universitas untuk acara wisuda, olahraga indoor, dan seminar.',
-      flatX: 590,
-      flatY: 50,
-      flatW: 210,
-      flatH: 60,
-      icon: '🏀'
-    },
-    {
-      id: 'Chapel',
-      name: 'Pioneer Chapel',
-      floors: 1,
-      description: 'Pusat ibadah ikonik UNKLAB dengan arsitektur atap segitiga runcing menjulang tinggi.',
-      flatX: 310,
-      flatY: 150,
-      flatW: 220,
-      flatH: 80,
-      icon: '⛪'
-    },
-    {
-      id: 'Fernheim',
-      name: 'Fernheim Cafeteria',
-      floors: 2,
-      description: 'Pusat jajanan mahasiswa, cafetaria kampus, dan Student Center.',
-      flatX: 590,
-      flatY: 140,
-      flatW: 210,
-      flatH: 60,
-      icon: '☕'
+const buildingsData: Record<string, BuildingData> = {
+  GK1: {
+    id: 'GK1',
+    name: 'GK1 — Gedung Kuliah 1',
+    subLabel: '5 Lantai',
+    color: '#1e40af', // biru tua
+    markerX: 230,
+    markerY: 135,
+    labelX: 160,
+    labelY: 168
+  },
+  GK3: {
+    id: 'GK3',
+    name: 'GK3 — Gedung Kuliah 3',
+    subLabel: '3 Lantai',
+    color: '#7c3aed', // ungu
+    markerX: 165,
+    markerY: 210,
+    labelX: 115,
+    labelY: 243
+  },
+  GA: {
+    id: 'GA',
+    name: 'GA — Gedung Administrasi',
+    subLabel: '3 Lantai',
+    color: '#0891b2', // cyan tua
+    markerX: 410,
+    markerY: 170,
+    labelX: 360,
+    labelY: 205
+  },
+  FWC: {
+    id: 'FWC',
+    name: 'FWC — Fern Wallace Center',
+    subLabel: 'Pusat Kegiatan',
+    color: '#0d9488', // teal
+    markerX: 520,
+    markerY: 100,
+    labelX: 475,
+    labelY: 128
+  },
+  Chapel: {
+    id: 'Chapel',
+    name: 'Pioneer Chapel',
+    subLabel: 'Gedung Ibadah',
+    color: '#b45309', // amber tua
+    markerX: 300,
+    markerY: 320,
+    labelX: 245,
+    labelY: 343
+  },
+  GK2: {
+    id: 'GK2',
+    name: 'GK2 — Gedung Kuliah 2',
+    subLabel: '1 Lantai (Bentuk U)',
+    color: '#2563eb', // biru
+    markerX: 490,
+    markerY: 340,
+    labelX: 420,
+    labelY: 365
+  },
+  SportHall: {
+    id: 'SportHall',
+    name: 'Sport Hall',
+    subLabel: 'Gymnasium & Lapangan Indoor',
+    color: '#15803d', // hijau tua
+    markerX: 700,
+    markerY: 150,
+    labelX: 635,
+    labelY: 190
+  },
+  'Lapangan Tenis': {
+    id: 'Lapangan Tenis',
+    name: 'Lapangan Tenis',
+    subLabel: 'Area Olahraga Outdoor',
+    color: '#065f46', // hijau gelap
+    markerX: 780,
+    markerY: 60,
+    labelX: 735,
+    labelY: 88
+  },
+  Kantin: {
+    id: 'Kantin',
+    name: 'Kantin Kampus',
+    subLabel: 'Pusat Kuliner',
+    color: '#c2410c', // orange tua
+    markerX: 550,
+    markerY: 270,
+    labelX: 520,
+    labelY: 288
+  },
+  'Study Garden': {
+    id: 'Study Garden',
+    name: 'Study Garden',
+    subLabel: 'Taman Belajar Terbuka',
+    color: '#16a34a', // hijau transparan
+    markerX: 410,
+    markerY: 110,
+    labelX: 370,
+    labelY: 130
+  },
+  'Prayer Garden': {
+    id: 'Prayer Garden',
+    name: 'Prayer Garden',
+    subLabel: 'Taman Doa Teduh',
+    color: '#16a34a', // hijau transparan
+    markerX: 155,
+    markerY: 410,
+    labelX: 110,
+    labelY: 440
+  }
+};
+
+const treeBlobs = [
+  { cx: 50, cy: 80, r: 15 },
+  { cx: 120, cy: 80, r: 10 },
+  { cx: 250, cy: 100, r: 20 },
+  { cx: 320, cy: 50, r: 14 },
+  { cx: 720, cy: 500, r: 18 },
+  { cx: 680, cy: 530, r: 22 },
+  { cx: 650, cy: 480, r: 14 },
+  { cx: 700, cy: 280, r: 16 },
+  { cx: 510, cy: 480, r: 15 },
+  { cx: 550, cy: 520, r: 12 },
+  { cx: 200, cy: 490, r: 15 }
+];
+
+export const CampusMap: React.FC<CampusMapProps> = ({ 
+  requests = [], 
+  selectedBuilding, 
+  onSelectBuilding 
+}) => {
+
+
+  // Filter laporan aktif (bukan CLOSED)
+  const activeRequests = requests.filter(r => r.status.toUpperCase() !== 'CLOSED');
+
+  // Kelompokkan laporan aktif berdasarkan ID Gedung
+  const buildingRequests: Record<string, RequestItem[]> = {};
+  activeRequests.forEach(req => {
+    const bId = getBuildingIdFromLocation(req.location);
+    if (bId) {
+      if (!buildingRequests[bId]) {
+        buildingRequests[bId] = [];
+      }
+      buildingRequests[bId].push(req);
     }
-  ];
+  });
 
-  // Hitung keluhan aktif per gedung
-  const getBuildingRequests = (buildingId: string) => {
-    return requests.filter(req => {
-      const matchesLocation = req.location.toLowerCase().includes(buildingId.toLowerCase());
-      const isPending = ['SUBMITTED', 'UNDER_REVIEW', 'ASSIGNED', 'IN_PROGRESS'].includes(req.status);
-      return matchesLocation && isPending;
-    });
+  const getMarkerColor = (count: number) => {
+    if (count === 0) return 'transparent';
+    if (count <= 2) return '#f59e0b'; // Kuning
+    return '#ef4444'; // Merah
   };
 
-  const activeSelectedBuilding = buildings.find(b => b.id === selectedBuilding);
-  const selectedBuildingRequests = selectedBuilding ? getBuildingRequests(selectedBuilding) : [];
+  const getPopupPositionStyle = (bId: string): React.CSSProperties => {
+    const bData = buildingsData[bId];
+    if (!bData) return {};
+
+    const isRight = bData.labelX > 400;
+    const isBottom = bData.labelY > 300;
+
+    const pctX = (bData.labelX / 800) * 100;
+    const pctY = (bData.labelY / 600) * 100;
+
+    const style: React.CSSProperties = {
+      position: 'absolute',
+      width: '260px',
+      background: 'rgba(15, 23, 42, 0.95)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255, 255, 255, 0.12)',
+      borderRadius: '16px',
+      padding: '16px',
+      color: 'white',
+      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
+      zIndex: 100,
+    };
+
+    if (isRight) {
+      style.right = `calc(${100 - pctX}% + 24px)`;
+    } else {
+      style.left = `calc(${pctX}% + 24px)`;
+    }
+
+    if (isBottom) {
+      style.bottom = `calc(${100 - pctY}% - 40px)`;
+    } else {
+      style.top = `calc(${pctY}% - 40px)`;
+    }
+
+    return style;
+  };
+
+  const handleMapBackgroundClick = () => {
+    onSelectBuilding(null);
+  };
 
   return (
-    <div style={styles.mapWrapper}>
-      {/* MAP HEADER */}
-      <div style={styles.mapHeader}>
-        <div style={styles.headerIndicator}>
-          <span style={styles.pulseDot}></span>
-          <span style={styles.headerTitle}>Peta Visual Landscape Universitas Klabat (Flat Vector 2D)</span>
-        </div>
-        <div style={styles.legend}>
-          <span style={styles.legendItem}><span style={styles.legendGreen}></span> Normal</span>
-          <span style={styles.legendItem}><span style={styles.legendGold}></span> Ada Kerusakan</span>
-        </div>
+    <div style={{
+      width: '100%',
+      height: '100%',
+      minHeight: '400px',
+      borderRadius: '20px',
+      overflow: 'hidden',
+      position: 'relative',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      background: '#4ade80'
+    }}>
+      {/* CSS Animasi Lokal */}
+      <style>{`
+        @keyframes markerPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.35); opacity: 0.75; }
+        }
+        @keyframes popupFadeIn {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .campus-building {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .campus-building:hover {
+          filter: brightness(1.2);
+          stroke: #ffffff !important;
+          stroke-width: 2px !important;
+        }
+        .campus-building-selected {
+          stroke: #ffffff !important;
+          stroke-width: 3px !important;
+          filter: brightness(1.25) drop-shadow(0 0 12px rgba(255,255,255,0.7)) !important;
+        }
+        .marker-pulse-element {
+          transform-origin: center;
+          animation: markerPulse 2s infinite ease-in-out;
+        }
+        .popup-window-animation {
+          animation: popupFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+
+      {/* Pill Judul Atas Kiri */}
+      <div style={{
+        position: 'absolute',
+        top: '16px',
+        left: '16px',
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        borderRadius: '50px',
+        padding: '8px 16px',
+        color: '#f8fafc',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        letterSpacing: '1px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        zIndex: 10,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+      }}>
+        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }}></span>
+        PETA KAMPUS UNKLAB
       </div>
 
-      {/* SVG CANVAS LANDSCAPE (Clean 2D Flat Vector Map) */}
-      <div style={styles.mapContainer}>
-        <svg width="860" height="420" viewBox="0 0 860 420" style={{ overflow: 'visible' }}>
-          <defs>
-            {/* Gradien Padang Rumput Hijau Premium */}
-            <linearGradient id="grassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1E5E2F" />
-              <stop offset="50%" stopColor="#2E7D32" />
-              <stop offset="100%" stopColor="#388E3C" />
-            </linearGradient>
-            {/* Gradien Danau Air Biru */}
-            <linearGradient id="lakeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#0284C7" />
-              <stop offset="100%" stopColor="#0369A1" />
-            </linearGradient>
-            {/* Radial Gradient untuk Pohon */}
-            <radialGradient id="treeGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#4ADE80" />
-              <stop offset="70%" stopColor="#15803D" />
-              <stop offset="100%" stopColor="#166534" />
-            </radialGradient>
-            {/* Shadow Filter */}
-            <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#000" floodOpacity="0.25" />
-            </filter>
-            {/* Glow Filter untuk Bangunan Rusak */}
-            <filter id="glowAlert" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
+      {/* PETA VECTOR SVG */}
+      <svg
+        viewBox="0 0 800 600"
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'block'
+        }}
+      >
+        {/* Background Halaman Hijau Muda */}
+        <rect
+          width="800"
+          height="600"
+          fill="#4ade80"
+          onClick={handleMapBackgroundClick}
+          style={{ cursor: 'default' }}
+        />
 
-          {/* 1. HAMPARAN RUMPUT UTAMA */}
-          <rect x="10" y="10" width="840" height="400" rx="30" fill="url(#grassGrad)" stroke="rgba(255,255,255,0.2)" strokeWidth="2" filter="url(#softShadow)" />
+        {/* Vegetasi / Pepohonan Hijau Tua */}
+        <g opacity="0.45" style={{ pointerEvents: 'none' }}>
+          {treeBlobs.map((tree, idx) => (
+            <circle
+              key={idx}
+              cx={tree.cx}
+              cy={tree.cy}
+              r={tree.r}
+              fill="#14532d"
+            />
+          ))}
+          {/* Tambahan Pepohonan Rimbun */}
+          <circle cx="130" cy="90" r="12" fill="#14532d" />
+          <circle cx="260" cy="110" r="16" fill="#14532d" />
+          <circle cx="690" cy="515" r="20" fill="#14532d" />
+        </g>
 
-          {/* 2. AREA DANAU ALAMIAH */}
-          <path d="M 12 100 Q 80 130 90 200 Q 100 280 40 330 Q 12 350 12 350 Z" fill="url(#lakeGrad)" opacity="0.9" />
+        {/* Jalanan / Path Utama Kampus */}
+        <g stroke="#e5e7eb" strokeLinecap="round" opacity="0.9" style={{ pointerEvents: 'none' }}>
+          {/* Path Horizontal Utama */}
+          <line x1="-10" y1="270" x2="810" y2="270" strokeWidth="14" />
+          {/* Path Vertikal Utama */}
+          <line x1="270" y1="-10" x2="270" y2="610" strokeWidth="14" />
 
-          {/* 3. TATA JALANAN KAMPUS (Road Network) */}
-          {/* Main Entrance Boulevard (Front/South to Roundabout) */}
-          <line x1="420" y1="410" x2="420" y2="280" stroke="#334155" strokeWidth="22" strokeLinecap="round" />
-          <line x1="420" y1="410" x2="420" y2="280" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="6 6" opacity="0.6" />
+          {/* Jalan Konektor Gedung */}
+          <line x1="240" y1="170" x2="270" y2="170" strokeWidth="10" />
+          <line x1="360" y1="170" x2="360" y2="270" strokeWidth="10" />
+          <line x1="270" y1="190" x2="560" y2="190" strokeWidth="10" />
+          <line x1="420" y1="270" x2="420" y2="330" strokeWidth="10" />
+        </g>
 
-          {/* Circular Roundabout */}
-          <circle cx="420" cy="270" r="35" fill="#334155" />
-          <circle cx="420" cy="270" r="35" fill="none" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-          <circle cx="420" cy="270" r="16" fill="#2E7D32" /> {/* Roundabout garden island */}
-
-          {/* Connecting Crossroads */}
-          {/* West Road to GK buildings */}
-          <line x1="420" y1="270" x2="270" y2="270" stroke="#334155" strokeWidth="16" />
-          {/* East Road to Hall/Cafeteria */}
-          <line x1="420" y1="270" x2="570" y2="270" stroke="#334155" strokeWidth="16" />
-
-          {/* Vertical road for GK buildings (West Wing) */}
-          <line x1="270" y1="40" x2="270" y2="350" stroke="#334155" strokeWidth="14" strokeLinecap="round" />
-          <line x1="270" y1="40" x2="270" y2="350" stroke="#FFFFFF" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
-
-          {/* Vertical road for Gym/Fernheim (East Wing) */}
-          <line x1="570" y1="40" x2="570" y2="350" stroke="#334155" strokeWidth="14" strokeLinecap="round" />
-          <line x1="570" y1="40" x2="570" y2="350" stroke="#FFFFFF" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
-
-          {/* Pedestrian Pathways (Dotted Lines) */}
-          <path d="M 270 200 L 310 200" fill="none" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="3 3" opacity="0.8" />
-          <path d="M 530 200 L 570 200" fill="none" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="3 3" opacity="0.8" />
-          <path d="M 420 150 L 420 235" fill="none" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="3 3" opacity="0.8" />
-
-          {/* 4. PARKIRAN KAMPUS (Parking Lots) */}
-          <g opacity="0.45" fill="#475569" stroke="#E2E8F0" strokeWidth="1">
-            {/* GK Parking */}
-            <rect x="210" y="275" width="45" height="30" rx="3" />
-            <text x="232" y="295" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">P</text>
-            {/* Hall Parking */}
-            <rect x="585" y="275" width="45" height="30" rx="3" />
-            <text x="607" y="295" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">P</text>
-          </g>
-
-          {/* 5. TREE ROW GARDENS (Beautiful radial trees) */}
-          <g>
-            {/* Boulevard Trees */}
-            <circle cx="395" cy="380" r="8" fill="url(#treeGrad)" />
-            <circle cx="395" cy="340" r="8" fill="url(#treeGrad)" />
-            <circle cx="395" cy="300" r="8" fill="url(#treeGrad)" />
-            <circle cx="445" cy="380" r="8" fill="url(#treeGrad)" />
-            <circle cx="445" cy="340" r="8" fill="url(#treeGrad)" />
-            <circle cx="445" cy="300" r="8" fill="url(#treeGrad)" />
-
-            {/* Central Roundabout Flowers/Garden */}
-            <circle cx="420" cy="270" r="6" fill="#F59E0B" />
-            
-            {/* Lakeside forest */}
-            <circle cx="85" cy="140" r="12" fill="url(#treeGrad)" />
-            <circle cx="100" cy="155" r="14" fill="url(#treeGrad)" />
-            <circle cx="105" cy="225" r="11" fill="url(#treeGrad)" />
-            <circle cx="110" cy="245" r="13" fill="url(#treeGrad)" />
-          </g>
-
-          {/* 6. INTERACTIVE BUILDINGS LAYER */}
-          {buildings.map(b => {
-            const activeRequests = getBuildingRequests(b.id);
-            const hasProblem = activeRequests.length > 0;
-            const isHovered = hoveredBuilding === b.id;
-            const isSelected = selectedBuilding === b.id;
-
-            // Premium Styling based on status
-            let cardBg = 'rgba(255, 255, 255, 0.95)';
-            let strokeColor = 'rgba(0,0,0,0.1)';
-            let strokeW = 1.5;
-            let textColor = '#0F172A';
-            let alertPulse = false;
-
-            if (isSelected) {
-              cardBg = '#D4E875';
-              strokeColor = '#101411';
-              strokeW = 3;
-              textColor = '#101411';
-            } else if (isHovered) {
-              cardBg = '#F3FEE3';
-              strokeColor = '#1B4332';
-              strokeW = 2.5;
-              textColor = '#1B4332';
-            } else if (hasProblem) {
-              cardBg = '#FEF3C7'; // Warm Warning Amber
-              strokeColor = '#F59E0B'; // Warning Solid Orange
-              strokeW = 2.5;
-              textColor = '#92400E';
-              alertPulse = true;
-            }
-
-            const x = b.flatX;
-            const y = b.flatY;
-            const w = b.flatW;
-            const h = b.flatH;
-
-            return (
-              <g
-                key={b.id}
-                onMouseEnter={() => setHoveredBuilding(b.id)}
-                onMouseLeave={() => setHoveredBuilding(null)}
-                onClick={() => onSelectBuilding(isSelected ? null : b.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                {/* Glowing shadow effect for problem buildings */}
-                {alertPulse && (
-                  <rect
-                    x={x - 4}
-                    y={y - 4}
-                    width={w + 8}
-                    height={h + 8}
-                    rx="16"
-                    ry="16"
-                    fill="none"
-                    stroke="rgba(245, 158, 11, 0.5)"
-                    strokeWidth="4"
-                    filter="url(#glowAlert)"
-                  />
-                )}
-
-                {/* Building Base Shape */}
-                <rect
-                  x={x}
-                  y={y}
-                  width={w}
-                  height={h}
-                  rx="14"
-                  ry="14"
-                  fill={cardBg}
-                  stroke={strokeColor}
-                  strokeWidth={strokeW}
-                  filter="url(#softShadow)"
-                  style={{ transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}
-                />
-
-                {/* Left Accent Bar for visual detail */}
-                <rect
-                  x={x + 1}
-                  y={y + 12}
-                  width="4"
-                  height={h - 24}
-                  rx="2"
-                  fill={hasProblem ? '#F59E0B' : (isSelected || isHovered ? '#1B4332' : '#64748B')}
-                />
-
-                {/* Icon & Building Title Group */}
-                <g transform={`translate(${x + 16}, ${y + h/2 - 1})`}>
-                  <text
-                    x="0"
-                    y="5"
-                    fontSize="18"
-                    fontFamily="Outfit, sans-serif"
-                    pointerEvents="none"
-                  >
-                    {b.icon}
-                  </text>
-                  <text
-                    x="28"
-                    y="4"
-                    fill={textColor}
-                    fontSize="12.5"
-                    fontWeight="800"
-                    fontFamily="Outfit, sans-serif"
-                    pointerEvents="none"
-                  >
-                    {b.name}
-                  </text>
-                </g>
-
-                {/* Warning Counter Indicator Badge */}
-                {hasProblem && (
-                  <g transform={`translate(${x + w - 12}, ${y + 12})`}>
-                    <circle cx="0" cy="0" r="10.5" fill="#EF4444" stroke="#ffffff" strokeWidth="1.5" />
-                    <text x="0" y="3" fill="#ffffff" fontSize="9.5" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
-                      {activeRequests.length}
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-
-      {/* POP-UP DETAIL MELAYANG GLASSMORPHISM */}
-      {activeSelectedBuilding && (
-        <div 
-          className="card-slide4 animate-in" 
-          style={styles.popupCard}
+        {/* STUDY GARDEN (Ellipse Transparan) */}
+        <g 
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Study Garden'); }}
+          style={{ cursor: 'pointer' }}
         >
-          <div className="card-slide4-tab">
-            <span>⚙️</span> INFO DETAIL GEDUNG
-          </div>
+          <ellipse
+            cx="370"
+            cy="130"
+            rx="45"
+            ry="30"
+            fill="#16a34a"
+            fillOpacity="0.4"
+            stroke={selectedBuilding === 'Study Garden' ? '#ffffff' : '#15803d'}
+            strokeWidth={selectedBuilding === 'Study Garden' ? 3 : 1.5}
+            strokeDasharray="4 2"
+            className={`campus-building ${selectedBuilding === 'Study Garden' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="370"
+            y="134"
+            fill="#ffffff"
+            fontSize="10"
+            fontWeight="600"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
+          >
+            Study Garden
+          </text>
+        </g>
 
-          <div style={styles.popupHeader}>
+        {/* PRAYER GARDEN (Ellipse Transparan) */}
+        <g 
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Prayer Garden'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <ellipse
+            cx="110"
+            cy="440"
+            rx="55"
+            ry="38"
+            fill="#16a34a"
+            fillOpacity="0.4"
+            stroke={selectedBuilding === 'Prayer Garden' ? '#ffffff' : '#15803d'}
+            strokeWidth={selectedBuilding === 'Prayer Garden' ? 3 : 1.5}
+            strokeDasharray="4 2"
+            className={`campus-building ${selectedBuilding === 'Prayer Garden' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="110"
+            y="444"
+            fill="#ffffff"
+            fontSize="10"
+            fontWeight="600"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
+          >
+            Prayer Garden
+          </text>
+        </g>
+
+        {/* LAPANGAN TENIS (Outline Hijau Gelap + Garis Lapangan) */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Lapangan Tenis'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          {/* Base Lapangan */}
+          <rect
+            x="680"
+            y="50"
+            width="110"
+            height="75"
+            rx="6"
+            fill="rgba(6, 95, 70, 0.25)"
+            stroke={selectedBuilding === 'Lapangan Tenis' ? '#ffffff' : '#065f46'}
+            strokeWidth={selectedBuilding === 'Lapangan Tenis' ? 3 : 2}
+            className={`campus-building ${selectedBuilding === 'Lapangan Tenis' ? 'campus-building-selected' : ''}`}
+          />
+          {/* Garis Dalam Lapangan Tenis */}
+          <g stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.5" fill="none" style={{ pointerEvents: 'none' }}>
+            <rect x="685" y="55" width="100" height="65" />
+            <line x1="685" y1="87.5" x2="785" y2="87.5" />
+            <line x1="735" y1="55" x2="735" y2="120" />
+            <line x1="710" y1="55" x2="710" y2="120" strokeOpacity="0.3" />
+            <line x1="760" y1="55" x2="760" y2="120" strokeOpacity="0.3" />
+          </g>
+          <text
+            x="735"
+            y="92"
+            fill="#ffffff"
+            fontSize="11"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}
+          >
+            Lap. Tenis
+          </text>
+        </g>
+
+        {/* GEDUNG LAINNYA */}
+
+        {/* GK1 (Rotate -12deg) */}
+        <g
+          transform="translate(160, 167.5) rotate(-12) translate(-160, -167.5)"
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('GK1'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="80"
+            y="140"
+            width="160"
+            height="55"
+            rx="8"
+            fill="#1e40af"
+            fillOpacity={buildingRequests['GK1']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'GK1' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'GK1' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'GK1' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="160"
+            y="173"
+            fill="#ffffff"
+            fontSize="12"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            GK1
+          </text>
+        </g>
+
+        {/* GK3 (Rotate -15deg) */}
+        <g
+          transform="translate(115, 242.5) rotate(-15) translate(-115, -242.5)"
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('GK3'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="60"
+            y="220"
+            width="110"
+            height="45"
+            rx="8"
+            fill="#7c3aed"
+            fillOpacity={buildingRequests['GK3']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'GK3' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'GK3' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'GK3' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="115"
+            y="247"
+            fill="#ffffff"
+            fontSize="12"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            GK3
+          </text>
+        </g>
+
+        {/* GA */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('GA'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="300"
+            y="160"
+            width="120"
+            height="90"
+            rx="8"
+            fill="#0891b2"
+            fillOpacity={buildingRequests['GA']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'GA' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'GA' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'GA' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="360"
+            y="210"
+            fill="#ffffff"
+            fontSize="13"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            GA
+          </text>
+        </g>
+
+        {/* FWC */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('FWC'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="420"
+            y="90"
+            width="110"
+            height="75"
+            rx="8"
+            fill="#0d9488"
+            fillOpacity={buildingRequests['FWC']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'FWC' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'FWC' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'FWC' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="475"
+            y="133"
+            fill="#ffffff"
+            fontSize="12"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            FWC
+          </text>
+        </g>
+
+        {/* PIONEER CHAPEL (Rect + Triangular Roof) */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Chapel'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="180"
+            y="310"
+            width="130"
+            height="65"
+            rx="8"
+            fill="#b45309"
+            fillOpacity={buildingRequests['Chapel']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'Chapel' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'Chapel' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'Chapel' ? 'campus-building-selected' : ''}`}
+          />
+          {/* Triangular roof feature */}
+          <path
+            d="M 185,342.5 L 245,315 L 305,342.5 Z"
+            fill="rgba(255,255,255,0.15)"
+            stroke="rgba(255,255,255,0.25)"
+            strokeWidth="1"
+            style={{ pointerEvents: 'none' }}
+          />
+          <text
+            x="245"
+            y="348"
+            fill="#ffffff"
+            fontSize="12"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            Chapel
+          </text>
+        </g>
+
+        {/* GK2 (Bentuk U - Kiri, Bawah, Kanan) */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('GK2'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          {/* Background overlay group highlights */}
+          <g
+            fill="#2563eb"
+            fillOpacity={buildingRequests['GK2']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'GK2' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'GK2' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'GK2' ? 'campus-building-selected' : ''}`}
+          >
+            {/* Kiri */}
+            <rect x="340" y="330" width="30" height="100" rx="4" />
+            {/* Bawah */}
+            <rect x="340" y="400" width="160" height="30" rx="4" />
+            {/* Kanan */}
+            <rect x="470" y="330" width="30" height="100" rx="4" />
+          </g>
+          <text
+            x="420"
+            y="370"
+            fill="#ffffff"
+            fontSize="12"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            GK2
+          </text>
+        </g>
+
+        {/* SPORT HALL */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('SportHall'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="560"
+            y="140"
+            width="150"
+            height="100"
+            rx="8"
+            fill="#15803d"
+            fillOpacity={buildingRequests['SportHall']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'SportHall' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'SportHall' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'SportHall' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="635"
+            y="195"
+            fill="#ffffff"
+            fontSize="13"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            Sport Hall
+          </text>
+        </g>
+
+        {/* KANTIN */}
+        <g
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Kantin'); }}
+          style={{ cursor: 'pointer' }}
+        >
+          <rect
+            x="480"
+            y="260"
+            width="80"
+            height="55"
+            rx="8"
+            fill="#c2410c"
+            fillOpacity={buildingRequests['Kantin']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'Kantin' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'Kantin' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'Kantin' ? 'campus-building-selected' : ''}`}
+          />
+          <text
+            x="520"
+            y="293"
+            fill="#ffffff"
+            fontSize="12"
+            fontWeight="bold"
+            textAnchor="middle"
+            style={{ pointerEvents: 'none' }}
+          >
+            Kantin
+          </text>
+        </g>
+
+        {/* PENANDA LAPORAN AKTIF (MARKER PINS) */}
+        {Object.entries(buildingsData).map(([key, bData]) => {
+          const bReqs = buildingRequests[key] || [];
+          const count = bReqs.length;
+          if (count === 0) return null;
+
+          const color = getMarkerColor(count);
+
+          return (
+            <g
+              key={key}
+              transform={`translate(${bData.markerX}, ${bData.markerY})`}
+              style={{ pointerEvents: 'none' }}
+            >
+              {/* Outer pulsing halo circle */}
+              <circle
+                cx="0"
+                cy="0"
+                r="13"
+                fill={color}
+                opacity="0.4"
+                className="marker-pulse-element"
+              />
+              {/* Solid pin circle */}
+              <circle
+                cx="0"
+                cy="0"
+                r="10"
+                fill={color}
+                stroke="#ffffff"
+                strokeWidth="1.5"
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+              />
+              {/* Counter Text */}
+              <text
+                x="0"
+                y="3"
+                fill="#ffffff"
+                fontSize="9"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                {count}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* POPUP DETAIL CARD (MELAYANG DI ATAS PETA) */}
+      {selectedBuilding && buildingsData[selectedBuilding] && (
+        <div 
+          style={getPopupPositionStyle(selectedBuilding)}
+          className="popup-window-animation"
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
             <div>
-              <h4 style={styles.popupTitle}>{activeSelectedBuilding.name}</h4>
-              <p style={styles.popupSubtitle}>{activeSelectedBuilding.floors} Lantai • Kode: {activeSelectedBuilding.id}</p>
+              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#f8fafc' }}>
+                🏢 {buildingsData[selectedBuilding].name}
+              </h4>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                {buildingsData[selectedBuilding].subLabel}
+              </span>
             </div>
-            <button 
-              onClick={() => onSelectBuilding(null)}
-              style={styles.closeBtn}
+            <button
+              onClick={(e) => { e.stopPropagation(); onSelectBuilding(null); }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#94a3b8',
+                fontSize: '14px',
+                cursor: 'pointer',
+                padding: '0 4px',
+                lineHeight: 1
+              }}
             >
               ✕
             </button>
           </div>
 
-          <div style={styles.popupBody}>
-            <p style={{ fontSize: '13px', color: '#56665A', lineHeight: '1.6', marginBottom: '16px' }}>
-              {activeSelectedBuilding.description}
-            </p>
-            
-            <p style={styles.popupSectionTitle}>Laporan Kerusakan Aktif ({selectedBuildingRequests.length}):</p>
-            {selectedBuildingRequests.length === 0 ? (
-              <p style={styles.emptyText}>Tidak ada keluhan aktif di gedung ini. Aman! 🎉</p>
-            ) : (
-              <div style={styles.ticketMiniList}>
-                {selectedBuildingRequests.map(req => (
-                  <div key={req.id} style={styles.ticketMiniItem}>
-                    <span style={styles.ticketMiniNumber}>{req.request_number}</span>
-                    <span style={styles.ticketMiniTitle}>{req.title}</span>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '8px 0', paddingTop: '8px' }}>
+            <div style={{ fontSize: '12px', fontWeight: '500', color: '#cbd5e1', marginBottom: '6px' }}>
+              Laporan Aktif: <strong style={{ color: (buildingRequests[selectedBuilding]?.length || 0) > 0 ? '#f43f5e' : '#10b981' }}>
+                {buildingRequests[selectedBuilding]?.length || 0}
+              </strong>
+            </div>
+
+            {/* List Tiket Laporan */}
+            {buildingRequests[selectedBuilding]?.length > 0 ? (
+              <div style={{ maxHeight: '110px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '4px', marginBottom: '12px' }}>
+                {buildingRequests[selectedBuilding].map((req) => (
+                  <div 
+                    key={req.id}
+                    style={{
+                      fontSize: '11px',
+                      color: '#cbd5e1',
+                      padding: '4px 6px',
+                      background: 'rgba(255,255,255,0.04)',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <span style={{
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '140px'
+                    }}>
+                      • {req.title}
+                    </span>
+                    <span style={{
+                      fontSize: '9px',
+                      fontWeight: 'bold',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                      background: 
+                        req.status === 'SUBMITTED' ? 'rgba(139, 92, 246, 0.25)' :
+                        req.status === 'UNDER_REVIEW' ? 'rgba(59, 130, 246, 0.25)' :
+                        req.status === 'ASSIGNED' ? 'rgba(16, 185, 129, 0.25)' :
+                        req.status === 'IN_PROGRESS' ? 'rgba(245, 158, 11, 0.25)' :
+                        'rgba(16, 185, 129, 0.25)',
+                      color:
+                        req.status === 'SUBMITTED' ? '#a78bfa' :
+                        req.status === 'UNDER_REVIEW' ? '#60a5fa' :
+                        req.status === 'ASSIGNED' ? '#34d399' :
+                        req.status === 'IN_PROGRESS' ? '#fbbf24' :
+                        '#34d399',
+                    }}>
+                      {req.status}
+                    </span>
                   </div>
                 ))}
               </div>
+            ) : (
+              <p style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', margin: '0 0 12px 0' }}>
+                Tidak ada laporan keluhan aktif di gedung ini.
+              </p>
             )}
           </div>
 
-          <div style={styles.popupFooter}>
-            <button 
-              onClick={() => onSelectBuilding(null)}
-              className="btn-glass"
-              style={{ padding: '6px 14px', fontSize: '12px' }}
+          {/* Action Button */}
+          {buildingRequests[selectedBuilding]?.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // Tetap pilih gedung untuk memicu filter di list tugas
+                onSelectBuilding(selectedBuilding);
+              }}
+              style={{
+                width: '100%',
+                background: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#1d4ed8'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#2563eb'}
             >
-              Tutup
+              Lihat Tugas
             </button>
-          </div>
+          )}
         </div>
       )}
+
+      {/* LEGENDA (KIRI BAWAH) */}
+      <div style={{
+        position: 'absolute',
+        bottom: '16px',
+        left: '16px',
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '12px',
+        padding: '10px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        zIndex: 10,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.25)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: '#e2e8f0', fontWeight: '500' }}>
+          <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.2)' }}></span>
+          Tidak ada laporan
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: '#e2e8f0', fontWeight: '500' }}>
+          <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', boxShadow: '0 0 6px rgba(245,158,11,0.5)' }}></span>
+          1 - 2 Laporan Aktif
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: '#e2e8f0', fontWeight: '500' }}>
+          <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 6px rgba(239,68,68,0.5)' }}></span>
+          3+ Laporan Aktif
+        </div>
+      </div>
+
+      {/* KOMPAS UTARA (KANAN BAWAH) */}
+      <div style={{
+        position: 'absolute',
+        bottom: '16px',
+        right: '16px',
+        width: '44px',
+        height: '44px',
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+        pointerEvents: 'none'
+      }}>
+        <svg width="34" height="34" viewBox="0 0 34 34">
+          <circle cx="17" cy="17" r="15" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+          <path d="M17,5 L20,17 L17,14 L14,17 Z" fill="#ef4444" />
+          <path d="M17,29 L20,17 L17,14 L14,17 Z" fill="rgba(255,255,255,0.3)" />
+          <text x="17" y="11" fill="#ffffff" fontSize="7" fontWeight="bold" textAnchor="middle">N</text>
+        </svg>
+      </div>
     </div>
   );
 };
 
-// Inline styles premium
-const styles: Record<string, React.CSSProperties> = {
-  mapWrapper: {
-    position: 'relative',
-    width: '100%',
-    minHeight: '480px',
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', /* Frosted glass base */
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    borderRadius: '24px',
-    border: '1px solid rgba(255, 255, 255, 0.7)',
-    overflow: 'hidden',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
-  },
-  mapHeader: {
-    padding: '16px 24px',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '12px',
-    zIndex: 5,
-    position: 'relative',
-    backgroundColor: 'transparent',
-  },
-  headerIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  pulseDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#2E7D32',
-    boxShadow: '0 0 8px #2E7D32',
-    animation: 'pulseGlow 2s infinite',
-  },
-  headerTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#101411',
-  },
-  legend: {
-    display: 'flex',
-    gap: '16px',
-    fontSize: '12px',
-  },
-  legendItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    color: '#101411',
-    fontWeight: '600',
-  },
-  legendGreen: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '3px',
-    backgroundColor: '#2E7D32',
-  },
-  legendGold: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '3px',
-    backgroundColor: '#F59E0B',
-  },
-  mapContainer: {
-    padding: '10px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflowX: 'auto',
-  },
-  popupCard: {
-    position: 'absolute',
-    bottom: '24px',
-    right: '24px',
-    width: '320px',
-    zIndex: 20,
-    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-    border: '1px solid rgba(255,255,255,0.25)',
-  },
-  popupHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '12px',
-  },
-  popupTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '17px',
-    fontWeight: '700',
-    color: '#101411',
-    margin: 0,
-  },
-  popupSubtitle: {
-    fontSize: '11px',
-    color: '#56665A',
-    margin: '2px 0 0 0',
-  },
-  closeBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#56665A',
-    fontSize: '14px',
-    cursor: 'pointer',
-    padding: '4px',
-  },
-  popupBody: {
-    marginBottom: '16px',
-  },
-  popupSectionTitle: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#F59E0B',
-    marginBottom: '10px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-  },
-  emptyText: {
-    fontSize: '13px',
-    color: '#56665A',
-  },
-  ticketMiniList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    maxHeight: '130px',
-    overflowY: 'auto',
-  },
-  ticketMiniItem: {
-    display: 'flex',
-    gap: '10px',
-    fontSize: '12px',
-    color: '#101411',
-    padding: '8px 12px',
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    border: '1px solid rgba(0,0,0,0.04)',
-    borderRadius: '8px',
-  },
-  ticketMiniNumber: {
-    fontFamily: 'monospace',
-    color: '#004B87',
-    fontWeight: '700',
-  },
-  ticketMiniTitle: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    flex: 1,
-  },
-  popupFooter: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  }
-};
+export default CampusMap;
