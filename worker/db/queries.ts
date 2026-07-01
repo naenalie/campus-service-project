@@ -102,7 +102,7 @@ export async function deleteSession(db: D1Database, token: string): Promise<void
 
 export async function getAllRequests(
   db: D1Database, 
-  filters?: { status?: string; category?: string; priority?: string; assigned_to?: string; reporter_id?: string }
+  filters?: { status?: string; category?: string; priority?: string; assigned_to?: string; reporter_id?: string; keyword?: string }
 ): Promise<ServiceRequest[]> {
   let query = 'SELECT * FROM service_requests WHERE 1=1';
   const params: string[] = [];
@@ -127,6 +127,16 @@ export async function getAllRequests(
     if (filters.reporter_id) {
       query += ' AND reporter_id = ?';
       params.push(filters.reporter_id);
+    }
+    if (filters.keyword) {
+      query += ` AND (
+        request_number LIKE ?
+        OR title LIKE ?
+        OR description LIKE ?
+        OR location LIKE ?
+      )`;
+      const keyword = `%${filters.keyword.trim()}%`;
+      params.push(keyword, keyword, keyword, keyword);
     }
   }
 

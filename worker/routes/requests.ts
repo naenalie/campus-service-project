@@ -36,11 +36,13 @@ export async function handleRequestRoutes(
       const status = url.searchParams.get('status');
       const category = url.searchParams.get('category');
       const priority = url.searchParams.get('priority');
+      const keyword = url.searchParams.get('keyword');
 
       const filters: any = {};
       if (status) filters.status = status;
       if (category) filters.category = category;
       if (priority) filters.priority = priority;
+      if (keyword) filters.keyword = keyword;
 
       // PELAPOR hanya boleh melihat laporannya sendiri
       if (user.role === 'PELAPOR') {
@@ -163,6 +165,66 @@ export async function handleRequestRoutes(
           data: newComment
         };
         return new Response(JSON.stringify(res), { status: 201, headers: jsonHeaders });
+      }
+
+      // -------------------------------------------------------------
+      // PATCH /api/requests/:id/confirm - Konfirmasi hasil oleh pelapor
+      // -------------------------------------------------------------
+      if (method === 'PATCH' && parts.length === 5 && parts[4] === 'confirm') {
+        if (user.role !== 'PELAPOR') {
+          const res: ApiResponse<null> = { success: false, error: 'Hanya pelapor yang dapat mengonfirmasi hasil perbaikan.' };
+          return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+        }
+
+        if (requestData.reporter_id !== user.id) {
+          const res: ApiResponse<null> = { success: false, error: 'Akses ditolak. Anda hanya dapat mengonfirmasi laporan milik sendiri.' };
+          return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+        }
+
+        if (requestData.status !== 'RESOLVED') {
+          const res: ApiResponse<null> = { success: false, error: 'Konfirmasi hanya dapat dilakukan pada laporan berstatus Resolved.' };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        let body: any;
+        try {
+          body = await request.json();
+        } catch (err) {
+          const res: ApiResponse<null> = { success: false, error: 'Request body harus berupa JSON valid' };
+          return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
+        }
+
+        const confirmed = body.confirmed === true;
+        const rejectionNotes = typeof body.rejection_notes === 'string' ? body.rejection_notes.trim() : '';
+
+        if (!confirmed && rejectionNotes.length < 10) {
+          const res: ApiResponse<null> = { success: false, error: 'Catatan penolakan minimal 10 karakter.' };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        const newStatus = confirmed ? 'CLOSED' : 'UNDER_REVIEW';
+        const note = confirmed
+          ? 'Pelapor mengonfirmasi hasil perbaikan dan laporan ditutup.'
+          : `Pelapor menolak hasil perbaikan: ${rejectionNotes}`;
+
+        const updatedRequest = await env.DB.batch([
+          env.DB
+            .prepare('UPDATE service_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+            .bind(newStatus, id),
+          env.DB
+            .prepare(`
+              INSERT INTO status_history (id, request_id, old_status, new_status, changed_by, note)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `)
+            .bind(crypto.randomUUID(), id, requestData.status, newStatus, user.id, note)
+        ]).then(async () => getRequestById(env.DB, id));
+
+        const res: ApiResponse<any> = {
+          success: true,
+          message: confirmed ? 'Konfirmasi diterima. Laporan telah ditutup.' : 'Komplain diterima. Laporan dibuka kembali untuk ditinjau.',
+          data: updatedRequest
+        };
+        return new Response(JSON.stringify(res), { status: 200, headers: jsonHeaders });
       }
 
       // -------------------------------------------------------------
