@@ -2,14 +2,16 @@
 // Implementasi router laporan keluhan (service requests)
 
 import type { Env, User, ApiResponse } from '../types';
-import { validateCreateRequest, validateComment } from '../middleware/validation';
+import { validateCreateRequest, validateComment, validateUpdateStatus } from '../middleware/validation';
 import { 
   getAllRequests, 
   getRequestById, 
   createRequest, 
   getRequestHistory, 
   getCommentsByRequest, 
-  createComment 
+  createComment,
+  updateRequestStatus,
+  assignRequest
 } from '../db/queries';
 
 const jsonHeaders = { 'Content-Type': 'application/json' };
@@ -172,6 +174,163 @@ export async function handleRequestRoutes(
         const res: ApiResponse<any[]> = {
           success: true,
           data: history
+        };
+        return new Response(JSON.stringify(res), { status: 200, headers: jsonHeaders });
+      }
+
+      // -------------------------------------------------------------
+      // PATCH /api/requests/:id/status - Update Status Laporan (BR-01, BR-02, BR-03, BR-04)
+      // -------------------------------------------------------------
+      if (method === 'PATCH' && parts.length === 5 && parts[4] === 'status') {
+        let body: any;
+        try {
+          body = await request.json();
+        } catch (err) {
+          const res: ApiResponse<null> = { success: false, error: 'Request body harus berupa JSON valid' };
+          return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
+        }
+
+        const newStatus = typeof body.new_status === 'string' ? body.new_status.trim().toUpperCase() : '';
+        const note = typeof body.notes === 'string' ? body.notes.trim() : '';
+
+        // Terapkan BR-02: Teknisi hanya boleh merubah tugas yang dialokasikan ke dirinya sendiri
+        if (user.role === 'TEKNISI') {
+          if (requestData.assigned_to !== user.id) {
+            const res: ApiResponse<null> = { success: false, error: 'Akses ditolak. Anda hanya diperbolehkan memperbarui tugas yang ditugaskan kepada diri Anda sendiri.' };
+            return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+          }
+          if (newStatus !== 'IN_PROGRESS' && newStatus !== 'RESOLVED') {
+            const res: ApiResponse<null> = { success: false, error: 'Aksi ditolak. Teknisi hanya diperbolehkan mengubah status menjadi In Progress atau Resolved.' };
+            return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+          }
+          // Terapkan BR-03: Catatan wajib diisi jika merubah status ke RESOLVED
+          if (newStatus === 'RESOLVED' && !note) {
+            const res: ApiResponse<null> = { success: false, error: 'Catatan penyelesaian teknis wajib diisi sebelum menandai perbaikan selesai (Resolved).' };
+            return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
+          }
+        }
+
+        // Terapkan BR-04: Pelapor dilarang merubah status via endpoint ini secara langsung
+        if (user.role === 'PELAPOR') {
+          const res: ApiResponse<null> = { success: false, error: 'Akses ditolak. Pelapor harus menggunakan endpoint konfirmasi untuk menutup tiket.' };
+          return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+        }
+
+        // Validasi transisi linier status (BR-01)
+        const validation = validateUpdateStatus({
+          current_status: requestData.status,
+          new_status: newStatus
+        });
+        if (!validation.valid) {
+          const res: ApiResponse<null> = { success: false, error: validation.errors.join(', ') };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        // Terapkan BR-04 (Pencegahan tutup paksa jika belum Resolved)
+        if (newStatus === 'CLOSED' && requestData.status !== 'RESOLVED') {
+          const res: ApiResponse<null> = { success: false, error: 'Aksi ditolak. Laporan hanya boleh dipindahkan ke status Closed setelah perbaikan selesai (Resolved).' };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        const updatedRequest = await updateRequestStatus(env.DB, id, newStatus as any, user.id, note);
+        
+        const res: ApiResponse<any> = {
+          success: true,
+          message: 'Status laporan berhasil diperbarui',
+          data: updatedRequest
+        };
+        return new Response(JSON.stringify(res), { status: 200, headers: jsonHeaders });
+      }
+
+      // -------------------------------------------------------------
+      // PATCH /api/requests/:id/assign - Alokasi Teknisi oleh Admin (BR-01, BR-02)
+      // -------------------------------------------------------------
+      if (method === 'PATCH' && parts.length === 5 && parts[4] === 'assign') {
+        if (user.role !== 'ADMIN') {
+          const res: ApiResponse<null> = { success: false, error: 'Akses ditolak. Hanya administrator yang dapat menugaskan teknisi.' };
+          return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+        }
+
+        let body: any;
+        try {
+          body = await request.json();
+        } catch (err) {
+          const res: ApiResponse<null> = { success: false, error: 'Request body harus berupa JSON valid' };
+          return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
+        }
+
+        const technicianId = typeof body.assigned_to === 'string' ? body.assigned_to.trim() : '';
+        if (!technicianId) {
+          const res: ApiResponse<null> = { success: false, error: 'ID teknisi wajib diisi.' };
+          return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
+        }
+
+        // Verifikasi bahwa user yang ditunjuk benar-benar merupakan TEKNISI aktif
+        const techUser = await env.DB.prepare('SELECT id, name, role, is_active FROM users WHERE id = ?').bind(technicianId).first<any>();
+        if (!techUser || techUser.role !== 'TEKNISI' || techUser.is_active === 0) {
+          const res: ApiResponse<null> = { success: false, error: 'Teknisi yang ditunjuk tidak ditemukan atau statusnya tidak aktif.' };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        // Cek linear transition (Hanya tiket UNDER_REVIEW yang bisa di-assign)
+        if (requestData.status !== 'UNDER_REVIEW') {
+          const res: ApiResponse<null> = { success: false, error: 'Aksi ditolak. Penugasan teknisi hanya dapat dilakukan ketika status tiket berada dalam peninjauan (Under Review).' };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        const updatedRequest = await assignRequest(env.DB, id, technicianId, user.id);
+
+        const res: ApiResponse<any> = {
+          success: true,
+          message: `Berhasil menugaskan ${techUser.name || 'teknisi'} untuk penanganan laporan`,
+          data: updatedRequest
+        };
+        return new Response(JSON.stringify(res), { status: 200, headers: jsonHeaders });
+      }
+
+      // -------------------------------------------------------------
+      // PATCH /api/requests/:id/confirm - Konfirmasi pelapor untuk penutupan tiket (BR-04, BR-05)
+      // -------------------------------------------------------------
+      if (method === 'PATCH' && parts.length === 5 && parts[4] === 'confirm') {
+        let body: any;
+        try {
+          body = await request.json();
+        } catch (err) {
+          const res: ApiResponse<null> = { success: false, error: 'Request body harus berupa JSON valid' };
+          return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
+        }
+
+        const { confirmed, rejection_notes } = body;
+        
+        // Verifikasi kepemilikan: Hanya pelapor asal yang boleh mengonfirmasi (atau admin)
+        if (user.role === 'PELAPOR' && requestData.reporter_id !== user.id) {
+          const res: ApiResponse<null> = { success: false, error: 'Akses ditolak. Anda hanya diperbolehkan mengonfirmasi laporan Anda sendiri.' };
+          return new Response(JSON.stringify(res), { status: 403, headers: jsonHeaders });
+        }
+
+        // Terapkan aturan: Hanya bisa dikonfirmasi jika status saat ini RESOLVED
+        if (requestData.status !== 'RESOLVED') {
+          const res: ApiResponse<null> = { success: false, error: 'Aksi ditolak. Laporan hanya bisa dikonfirmasi jika statusnya sudah diselesaikan (Resolved).' };
+          return new Response(JSON.stringify(res), { status: 422, headers: jsonHeaders });
+        }
+
+        let nextStatus: any;
+        let note: string;
+
+        if (confirmed) {
+          nextStatus = 'CLOSED';
+          note = 'Pelapor mengonfirmasi perbaikan selesai. Laporan ditutup.';
+        } else {
+          nextStatus = 'IN_PROGRESS'; // Kembali ke IN_PROGRESS untuk dikerjakan ulang oleh teknisi
+          note = `Pelapor menolak hasil perbaikan. Alasan: ${rejection_notes || ''}`;
+        }
+
+        const updatedRequest = await updateRequestStatus(env.DB, id, nextStatus, user.id, note);
+
+        const res: ApiResponse<any> = {
+          success: true,
+          message: confirmed ? 'Laporan berhasil dikonfirmasi dan ditutup' : 'Laporan ditolak dan dikembalikan untuk ditinjau',
+          data: updatedRequest
         };
         return new Response(JSON.stringify(res), { status: 200, headers: jsonHeaders });
       }
