@@ -36,10 +36,10 @@ const getBuildingIdFromLocation = (location: string): string | null => {
   if (loc.includes('gk3')) return 'GK3';
   if (loc.includes('ga') || loc.includes('administrasi')) return 'GA';
   if (loc.includes('fwc') || loc.includes('fern')) return 'FWC';
-  if (loc.includes('chapel')) return 'Chapel';
-  if (loc.includes('sport') || loc.includes('hall')) return 'SportHall';
-  if (loc.includes('tenis')) return 'Lapangan Tenis';
-  if (loc.includes('kantin')) return 'Kantin';
+  if (loc.includes('chapel') || loc.includes('pioneer') || loc.includes('pc')) return 'PC';
+  if (loc.includes('sport') || loc.includes('hall') || loc.includes('sh')) return 'SH';
+  if (loc.includes('tenis') || loc.includes('tennis') || loc.includes('lt')) return 'LT';
+  if (loc.includes('kantin') || loc.includes('kt')) return 'KT';
   if (loc.includes('study')) return 'Study Garden';
   if (loc.includes('prayer')) return 'Prayer Garden';
   return null;
@@ -50,126 +50,130 @@ const buildingsData: Record<string, BuildingData> = {
     id: 'GK1',
     name: 'GK1 — Gedung Kuliah 1',
     subLabel: '5 Lantai',
-    color: '#1e40af', // biru tua
-    markerX: 230,
-    markerY: 135,
-    labelX: 160,
-    labelY: 168
-  },
-  GK3: {
-    id: 'GK3',
-    name: 'GK3 — Gedung Kuliah 3',
-    subLabel: '3 Lantai',
-    color: '#7c3aed', // ungu
-    markerX: 165,
-    markerY: 210,
-    labelX: 115,
-    labelY: 243
-  },
-  GA: {
-    id: 'GA',
-    name: 'GA — Gedung Administrasi',
-    subLabel: '3 Lantai',
-    color: '#0891b2', // cyan tua
-    markerX: 410,
-    markerY: 170,
-    labelX: 360,
-    labelY: 205
-  },
-  FWC: {
-    id: 'FWC',
-    name: 'FWC — Fern Wallace Center',
-    subLabel: 'Pusat Kegiatan',
-    color: '#0d9488', // teal
-    markerX: 520,
-    markerY: 100,
-    labelX: 475,
-    labelY: 128
-  },
-  Chapel: {
-    id: 'Chapel',
-    name: 'Pioneer Chapel',
-    subLabel: 'Gedung Ibadah',
-    color: '#b45309', // amber tua
-    markerX: 300,
-    markerY: 320,
-    labelX: 245,
-    labelY: 343
+    color: '#1e40af',
+    markerX: 235,
+    markerY: 175,
+    labelX: 177,
+    labelY: 208
   },
   GK2: {
     id: 'GK2',
     name: 'GK2 — Gedung Kuliah 2',
     subLabel: '1 Lantai (Bentuk U)',
-    color: '#2563eb', // biru
-    markerX: 490,
-    markerY: 340,
-    labelX: 420,
-    labelY: 365
+    color: '#2563eb',
+    markerX: 475,
+    markerY: 385,
+    labelX: 405,
+    labelY: 415
   },
-  SportHall: {
-    id: 'SportHall',
+  GK3: {
+    id: 'GK3',
+    name: 'GK3 — Gedung Kuliah 3',
+    subLabel: '3 Lantai',
+    color: '#7c3aed',
+    markerX: 175,
+    markerY: 260,
+    labelX: 132,
+    labelY: 292
+  },
+  GA: {
+    id: 'GA',
+    name: 'GA — Gedung Administrasi',
+    subLabel: '3 Lantai',
+    color: '#0891b2',
+    markerX: 400,
+    markerY: 200,
+    labelX: 352,
+    labelY: 237
+  },
+  FWC: {
+    id: 'FWC',
+    name: 'FWC — Fern Wallace Center',
+    subLabel: 'Pusat Kegiatan',
+    color: '#0d9488',
+    markerX: 540,
+    markerY: 105,
+    labelX: 497,
+    labelY: 132
+  },
+  PC: {
+    id: 'PC',
+    name: 'Pioneer Chapel',
+    subLabel: 'Gedung Ibadah',
+    color: '#b45309',
+    markerX: 240,
+    markerY: 370,
+    labelX: 187,
+    labelY: 392
+  },
+  SH: {
+    id: 'SH',
     name: 'Sport Hall',
     subLabel: 'Gymnasium & Lapangan Indoor',
-    color: '#15803d', // hijau tua
-    markerX: 700,
-    markerY: 150,
-    labelX: 635,
-    labelY: 190
+    color: '#15803d',
+    markerX: 695,
+    markerY: 175,
+    labelX: 632,
+    labelY: 217
   },
-  'Lapangan Tenis': {
-    id: 'Lapangan Tenis',
+  LT: {
+    id: 'LT',
     name: 'Lapangan Tenis',
     subLabel: 'Area Olahraga Outdoor',
-    color: '#065f46', // hijau gelap
-    markerX: 780,
-    markerY: 60,
-    labelX: 735,
-    labelY: 88
+    color: '#065f46',
+    markerX: 770,
+    markerY: 55,
+    labelX: 727,
+    labelY: 85
   },
-  Kantin: {
-    id: 'Kantin',
+  KT: {
+    id: 'KT',
     name: 'Kantin Kampus',
     subLabel: 'Pusat Kuliner',
-    color: '#c2410c', // orange tua
-    markerX: 550,
-    markerY: 270,
-    labelX: 520,
-    labelY: 288
+    color: '#c2410c',
+    markerX: 635,
+    markerY: 305,
+    labelX: 605,
+    labelY: 325
   },
   'Study Garden': {
     id: 'Study Garden',
     name: 'Study Garden',
     subLabel: 'Taman Belajar Terbuka',
-    color: '#16a34a', // hijau transparan
-    markerX: 410,
-    markerY: 110,
-    labelX: 370,
-    labelY: 130
+    color: '#16a34a',
+    markerX: 350,
+    markerY: 90,
+    labelX: 320,
+    labelY: 110
   },
   'Prayer Garden': {
     id: 'Prayer Garden',
     name: 'Prayer Garden',
     subLabel: 'Taman Doa Teduh',
-    color: '#16a34a', // hijau transparan
-    markerX: 155,
-    markerY: 410,
+    color: '#16a34a',
+    markerX: 150,
+    markerY: 480,
     labelX: 110,
-    labelY: 440
+    labelY: 500
   }
 };
 
 const treeBlobs = [
-  { cx: 50, cy: 80, r: 15 },
-  { cx: 120, cy: 80, r: 10 },
-  { cx: 250, cy: 100, r: 20 },
-  { cx: 320, cy: 50, r: 14 },
-  { cx: 720, cy: 500, r: 18 },
-  { cx: 680, cy: 530, r: 22 },
-  { cx: 650, cy: 480, r: 14 },
-  { cx: 700, cy: 280, r: 16 },
-  { cx: 510, cy: 480, r: 15 },
-  { cx: 550, cy: 520, r: 12 },
-  { cx: 200, cy: 490, r: 15 }
+  { cx: 70, cy: 90, r: 12 },
+  { cx: 150, cy: 70, r: 15 },
+  { cx: 240, cy: 60, r: 18 },
+  { cx: 280, cy: 110, r: 14 },
+  { cx: 620, cy: 110, r: 16 },
+  { cx: 720, cy: 220, r: 12 },
+  { cx: 750, cy: 260, r: 15 },
+  { cx: 710, cy: 320, r: 18 },
+  { cx: 730, cy: 450, r: 14 },
+  { cx: 680, cy: 490, r: 16 },
+  { cx: 580, cy: 520, r: 12 },
+  { cx: 260, cy: 520, r: 15 },
+  { cx: 180, cy: 540, r: 18 },
+  { cx: 80, cy: 560, r: 14 },
+  { cx: 40, cy: 490, r: 16 }
 ];
 
 export const CampusMap: React.FC<CampusMapProps> = ({ 
@@ -177,8 +181,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   selectedBuilding, 
   onSelectBuilding 
 }) => {
-
-
   // Filter laporan aktif (bukan CLOSED)
   const activeRequests = requests.filter(r => r.status.toUpperCase() !== 'CLOSED');
 
@@ -341,46 +343,34 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               fill="#14532d"
             />
           ))}
-          {/* Tambahan Pepohonan Rimbun */}
-          <circle cx="130" cy="90" r="12" fill="#14532d" />
-          <circle cx="260" cy="110" r="16" fill="#14532d" />
-          <circle cx="690" cy="515" r="20" fill="#14532d" />
         </g>
 
-        {/* Jalanan / Path Utama Kampus */}
-        <g stroke="#e5e7eb" strokeLinecap="round" opacity="0.9" style={{ pointerEvents: 'none' }}>
-          {/* Path Horizontal Utama */}
-          <line x1="-10" y1="270" x2="810" y2="270" strokeWidth="14" />
-          {/* Path Vertikal Utama */}
-          <line x1="270" y1="-10" x2="270" y2="610" strokeWidth="14" />
-
-          {/* Jalan Konektor Gedung */}
-          <line x1="240" y1="170" x2="270" y2="170" strokeWidth="10" />
-          <line x1="360" y1="170" x2="360" y2="270" strokeWidth="10" />
-          <line x1="270" y1="190" x2="560" y2="190" strokeWidth="10" />
-          <line x1="420" y1="270" x2="420" y2="330" strokeWidth="10" />
+        {/* Jalanan Utama Kampus */}
+        <g strokeLinecap="round" opacity="0.85" style={{ pointerEvents: 'none' }}>
+          {/* Jalan diagonal utama */}
+          <path d="M 50,50 L 750,550" stroke="#c8d5d5" strokeWidth="18" fill="none" />
+          {/* Jalan horizontal tengah */}
+          <line x1="0" y1="300" x2="800" y2="300" stroke="#c8d5d5" strokeWidth="14" />
+          {/* Jalan vertikal */}
+          <line x1="420" y1="0" x2="420" y2="600" stroke="#c8d5d5" strokeWidth="12" />
         </g>
 
         {/* STUDY GARDEN (Ellipse Transparan) */}
-        <g 
-          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Study Garden'); }}
-          style={{ cursor: 'pointer' }}
-        >
+        <g style={{ cursor: 'default' }}>
           <ellipse
-            cx="370"
-            cy="130"
+            cx="320"
+            cy="110"
             rx="45"
             ry="30"
             fill="#16a34a"
             fillOpacity="0.4"
-            stroke={selectedBuilding === 'Study Garden' ? '#ffffff' : '#15803d'}
-            strokeWidth={selectedBuilding === 'Study Garden' ? 3 : 1.5}
+            stroke="#15803d"
+            strokeWidth={1.5}
             strokeDasharray="4 2"
-            className={`campus-building ${selectedBuilding === 'Study Garden' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="370"
-            y="134"
+            x="320"
+            y="114"
             fill="#ffffff"
             fontSize="10"
             fontWeight="600"
@@ -392,25 +382,21 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         </g>
 
         {/* PRAYER GARDEN (Ellipse Transparan) */}
-        <g 
-          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Prayer Garden'); }}
-          style={{ cursor: 'pointer' }}
-        >
+        <g style={{ cursor: 'default' }}>
           <ellipse
             cx="110"
-            cy="440"
+            cy="500"
             rx="55"
             ry="38"
             fill="#16a34a"
             fillOpacity="0.4"
-            stroke={selectedBuilding === 'Prayer Garden' ? '#ffffff' : '#15803d'}
-            strokeWidth={selectedBuilding === 'Prayer Garden' ? 3 : 1.5}
+            stroke="#15803d"
+            strokeWidth={1.5}
             strokeDasharray="4 2"
-            className={`campus-building ${selectedBuilding === 'Prayer Garden' ? 'campus-building-selected' : ''}`}
           />
           <text
             x="110"
-            y="444"
+            y="504"
             fill="#ffffff"
             fontSize="10"
             fontWeight="600"
@@ -421,34 +407,33 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </text>
         </g>
 
-        {/* LAPANGAN TENIS (Outline Hijau Gelap + Garis Lapangan) */}
+        {/* LAPANGAN TENIS (LT) */}
         <g
-          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Lapangan Tenis'); }}
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('LT'); }}
           style={{ cursor: 'pointer' }}
         >
-          {/* Base Lapangan */}
           <rect
-            x="680"
-            y="50"
-            width="110"
-            height="75"
+            x="670"
+            y="45"
+            width="115"
+            height="80"
             rx="6"
             fill="rgba(6, 95, 70, 0.25)"
-            stroke={selectedBuilding === 'Lapangan Tenis' ? '#ffffff' : '#065f46'}
-            strokeWidth={selectedBuilding === 'Lapangan Tenis' ? 3 : 2}
-            className={`campus-building ${selectedBuilding === 'Lapangan Tenis' ? 'campus-building-selected' : ''}`}
+            stroke={selectedBuilding === 'LT' ? '#ffffff' : '#065f46'}
+            strokeWidth={selectedBuilding === 'LT' ? 3 : 2}
+            className={`campus-building ${selectedBuilding === 'LT' ? 'campus-building-selected' : ''}`}
           />
-          {/* Garis Dalam Lapangan Tenis */}
+          {/* Garis Net Lapangan */}
           <g stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.5" fill="none" style={{ pointerEvents: 'none' }}>
-            <rect x="685" y="55" width="100" height="65" />
-            <line x1="685" y1="87.5" x2="785" y2="87.5" />
-            <line x1="735" y1="55" x2="735" y2="120" />
-            <line x1="710" y1="55" x2="710" y2="120" strokeOpacity="0.3" />
-            <line x1="760" y1="55" x2="760" y2="120" strokeOpacity="0.3" />
+            <rect x="675" y="50" width="105" height="70" />
+            <line x1="675" y1="85" x2="780" y2="85" />
+            <line x1="727.5" y1="50" x2="727.5" y2="120" />
+            <line x1="700" y1="50" x2="700" y2="120" strokeOpacity="0.3" />
+            <line x1="755" y1="50" x2="755" y2="120" strokeOpacity="0.3" />
           </g>
           <text
-            x="735"
-            y="92"
+            x="727"
+            y="90"
             fill="#ffffff"
             fontSize="11"
             fontWeight="bold"
@@ -459,18 +444,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </text>
         </g>
 
-        {/* GEDUNG LAINNYA */}
-
-        {/* GK1 (Rotate -12deg) */}
+        {/* GK1 (Rotate -18deg) */}
         <g
-          transform="translate(160, 167.5) rotate(-12) translate(-160, -167.5)"
+          transform="translate(177.5, 207.5) rotate(-18) translate(-177.5, -207.5)"
           onClick={(e) => { e.stopPropagation(); onSelectBuilding('GK1'); }}
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="80"
-            y="140"
-            width="160"
+            x="100"
+            y="180"
+            width="155"
             height="55"
             rx="8"
             fill="#1e40af"
@@ -480,8 +463,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             className={`campus-building ${selectedBuilding === 'GK1' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="160"
-            y="173"
+            x="177"
+            y="213"
             fill="#ffffff"
             fontSize="12"
             fontWeight="bold"
@@ -492,16 +475,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </text>
         </g>
 
-        {/* GK3 (Rotate -15deg) */}
+        {/* GK3 (Rotate -20deg) */}
         <g
-          transform="translate(115, 242.5) rotate(-15) translate(-115, -242.5)"
+          transform="translate(132.5, 292.5) rotate(-20) translate(-132.5, -292.5)"
           onClick={(e) => { e.stopPropagation(); onSelectBuilding('GK3'); }}
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="60"
-            y="220"
-            width="110"
+            x="75"
+            y="270"
+            width="115"
             height="45"
             rx="8"
             fill="#7c3aed"
@@ -511,8 +494,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             className={`campus-building ${selectedBuilding === 'GK3' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="115"
-            y="247"
+            x="132"
+            y="297"
             fill="#ffffff"
             fontSize="12"
             fontWeight="bold"
@@ -529,10 +512,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="300"
-            y="160"
-            width="120"
-            height="90"
+            x="290"
+            y="190"
+            width="125"
+            height="95"
             rx="8"
             fill="#0891b2"
             fillOpacity={buildingRequests['GA']?.length ? 1 : 0.85}
@@ -541,8 +524,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             className={`campus-building ${selectedBuilding === 'GA' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="360"
-            y="210"
+            x="352"
+            y="242"
             fill="#ffffff"
             fontSize="13"
             fontWeight="bold"
@@ -559,9 +542,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="420"
-            y="90"
-            width="110"
+            x="440"
+            y="95"
+            width="115"
             height="75"
             rx="8"
             fill="#0d9488"
@@ -571,8 +554,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             className={`campus-building ${selectedBuilding === 'FWC' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="475"
-            y="133"
+            x="497"
+            y="138"
             fill="#ffffff"
             fontSize="12"
             fontWeight="bold"
@@ -583,34 +566,35 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </text>
         </g>
 
-        {/* PIONEER CHAPEL (Rect + Triangular Roof) */}
+        {/* PIONEER CHAPEL (PC) */}
         <g
-          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Chapel'); }}
+          transform="translate(187.5, 392.5) rotate(-5) translate(-187.5, -392.5)"
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('PC'); }}
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="180"
-            y="310"
-            width="130"
+            x="120"
+            y="360"
+            width="135"
             height="65"
             rx="8"
             fill="#b45309"
-            fillOpacity={buildingRequests['Chapel']?.length ? 1 : 0.85}
-            stroke={selectedBuilding === 'Chapel' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
-            strokeWidth={selectedBuilding === 'Chapel' ? 3 : 1}
-            className={`campus-building ${selectedBuilding === 'Chapel' ? 'campus-building-selected' : ''}`}
+            fillOpacity={buildingRequests['PC']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'PC' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'PC' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'PC' ? 'campus-building-selected' : ''}`}
           />
-          {/* Triangular roof feature */}
-          <path
-            d="M 185,342.5 L 245,315 L 305,342.5 Z"
+          {/* Triangular roof polygon */}
+          <polygon
+            points="125,392.5 187.5,365 250,392.5"
             fill="rgba(255,255,255,0.15)"
             stroke="rgba(255,255,255,0.25)"
             strokeWidth="1"
             style={{ pointerEvents: 'none' }}
           />
           <text
-            x="245"
-            y="348"
+            x="187"
+            y="397"
             fill="#ffffff"
             fontSize="12"
             fontWeight="bold"
@@ -626,7 +610,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           onClick={(e) => { e.stopPropagation(); onSelectBuilding('GK2'); }}
           style={{ cursor: 'pointer' }}
         >
-          {/* Background overlay group highlights */}
           <g
             fill="#2563eb"
             fillOpacity={buildingRequests['GK2']?.length ? 1 : 0.85}
@@ -635,15 +618,15 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             className={`campus-building ${selectedBuilding === 'GK2' ? 'campus-building-selected' : ''}`}
           >
             {/* Kiri */}
-            <rect x="340" y="330" width="30" height="100" rx="4" />
+            <rect x="320" y="370" width="30" height="90" rx="4" />
             {/* Bawah */}
-            <rect x="340" y="400" width="160" height="30" rx="4" />
+            <rect x="320" y="460" width="170" height="30" rx="4" />
             {/* Kanan */}
-            <rect x="470" y="330" width="30" height="100" rx="4" />
+            <rect x="460" y="370" width="30" height="90" rx="4" />
           </g>
           <text
-            x="420"
-            y="370"
+            x="405"
+            y="415"
             fill="#ffffff"
             fontSize="12"
             fontWeight="bold"
@@ -654,26 +637,26 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </text>
         </g>
 
-        {/* SPORT HALL */}
+        {/* SPORT HALL (SH) */}
         <g
-          onClick={(e) => { e.stopPropagation(); onSelectBuilding('SportHall'); }}
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('SH'); }}
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="560"
-            y="140"
-            width="150"
-            height="100"
+            x="555"
+            y="165"
+            width="155"
+            height="105"
             rx="8"
             fill="#15803d"
-            fillOpacity={buildingRequests['SportHall']?.length ? 1 : 0.85}
-            stroke={selectedBuilding === 'SportHall' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
-            strokeWidth={selectedBuilding === 'SportHall' ? 3 : 1}
-            className={`campus-building ${selectedBuilding === 'SportHall' ? 'campus-building-selected' : ''}`}
+            fillOpacity={buildingRequests['SH']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'SH' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'SH' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'SH' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="635"
-            y="195"
+            x="632"
+            y="222"
             fill="#ffffff"
             fontSize="13"
             fontWeight="bold"
@@ -684,26 +667,26 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </text>
         </g>
 
-        {/* KANTIN */}
+        {/* KANTIN (KT) */}
         <g
-          onClick={(e) => { e.stopPropagation(); onSelectBuilding('Kantin'); }}
+          onClick={(e) => { e.stopPropagation(); onSelectBuilding('KT'); }}
           style={{ cursor: 'pointer' }}
         >
           <rect
-            x="480"
-            y="260"
-            width="80"
-            height="55"
+            x="560"
+            y="295"
+            width="90"
+            height="60"
             rx="8"
             fill="#c2410c"
-            fillOpacity={buildingRequests['Kantin']?.length ? 1 : 0.85}
-            stroke={selectedBuilding === 'Kantin' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
-            strokeWidth={selectedBuilding === 'Kantin' ? 3 : 1}
-            className={`campus-building ${selectedBuilding === 'Kantin' ? 'campus-building-selected' : ''}`}
+            fillOpacity={buildingRequests['KT']?.length ? 1 : 0.85}
+            stroke={selectedBuilding === 'KT' ? '#ffffff' : 'rgba(255,255,255,0.2)'}
+            strokeWidth={selectedBuilding === 'KT' ? 3 : 1}
+            className={`campus-building ${selectedBuilding === 'KT' ? 'campus-building-selected' : ''}`}
           />
           <text
-            x="520"
-            y="293"
+            x="605"
+            y="330"
             fill="#ffffff"
             fontSize="12"
             fontWeight="bold"
