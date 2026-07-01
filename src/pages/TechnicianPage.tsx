@@ -1,11 +1,10 @@
 // src/pages/TechnicianPage.tsx
-// Halaman Penugasan Kerja & Progress Teknisi (FR-05, FR-06) dengan Peta Kampus Interaktif
+// Halaman Penugasan Kerja & Progress Teknisi (FR-05, FR-06) dengan Grid Penugasan Tugas Hari Ini
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { CampusMap } from '../components/CampusMap';
 import * as api from '../services/api';
 
 interface Task {
@@ -18,9 +17,41 @@ interface Task {
   priority: string;
   category: string;
   created_at: string;
+  reporter_name?: string | null;
 }
 
+const getBuildingLabel = (location: string): string => {
+  const loc = location.toUpperCase();
+  if (loc.includes('GK1')) return 'GK1';
+  if (loc.includes('GK2')) return 'GK2';
+  if (loc.includes('GK3')) return 'GK3';
+  if (loc.includes('GA') || loc.includes('ADMINISTRASI')) return 'GA';
+  if (loc.includes('FWC') || loc.includes('FERN')) return 'FWC';
+  if (loc.includes('CHAPEL') || loc.includes('PIONEER')) return 'Chapel';
+  if (loc.includes('SPORT') || loc.includes('HALL')) return 'Sport Hall';
+  if (loc.includes('TENIS') || loc.includes('TENNIS')) return 'Lap. Tenis';
+  if (loc.includes('KANTIN')) return 'Kantin';
+  
+  const parts = location.split(',');
+  return parts[0]?.trim() || location;
+};
 
+const getCategoryIcon = (category: string) => {
+  const cat = category.toLowerCase();
+  if (cat.includes('internet')) return '🌐';
+  if (cat.includes('ac')) return '❄️';
+  if (cat.includes('peralatan') || cat.includes('kelas')) return '🏫';
+  if (cat.includes('kebersihan')) return '🧹';
+  if (cat.includes('fisik') || cat.includes('kerusakan')) return '🧱';
+  return '🔧';
+};
+
+const getPriorityColor = (priority: string) => {
+  const p = priority.toUpperCase();
+  if (p === 'HIGH' || p === 'CRITICAL') return '#ef4444';
+  if (p === 'MEDIUM') return '#f59e0b';
+  return '#22c55e'; // LOW
+};
 
 export const TechnicianPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -101,6 +132,8 @@ export const TechnicianPage: React.FC = () => {
     }
   };
 
+  const activeTasks = requests.filter(t => ['ASSIGNED', 'IN_PROGRESS'].includes(t.status.toUpperCase()));
+
   const filteredTasks = selectedBuilding
     ? requests.filter(req => {
         const loc = req.location.toLowerCase();
@@ -138,29 +171,105 @@ export const TechnicianPage: React.FC = () => {
 
       {/* BODY CONTENT SPLIT */}
       <div style={styles.mainContent}>
-        {/* MAP SECTION (55% Height) */}
-        <section style={styles.mapSection}>
-          <CampusMap
-            requests={requests}
-            selectedBuilding={selectedBuilding}
-            onSelectBuilding={(buildingId) => {
-              setSelectedBuilding(buildingId);
-              // Scroll ke task list kalau di mobile
-              if (buildingId) {
-                document.getElementById('task-list')?.scrollIntoView({ 
-                  behavior: 'smooth' 
-                });
-              }
-            }}
-          />
+        {/* TUGAS HARI INI SECTION */}
+        <section style={styles.tugasHariIniContainer}>
+          <h3 className="nature-huge-header" style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#101411' }}>
+            📋 Tugas Hari Ini ({activeTasks.length})
+          </h3>
+
+          {isLoading ? (
+            <div style={styles.loaderContainer}>
+              <div className="glass-card" style={{ width: '100%', height: '140px', borderRadius: '24px' }}></div>
+            </div>
+          ) : activeTasks.length === 0 ? (
+            <div className="glass-card" style={styles.emptyCard}>
+              <span style={{ fontSize: '32px' }}>🎉</span>
+              <p style={{ color: '#56665A', fontSize: '14px', fontWeight: '700', marginTop: '8px', margin: 0 }}>
+                Tidak ada penugasan aktif untuk Anda hari ini!
+              </p>
+            </div>
+          ) : (
+            <div style={styles.tugasGrid}>
+              {activeTasks.map(task => (
+                <div 
+                  key={task.id} 
+                  style={{
+                    ...styles.newTugasCard,
+                    borderLeft: `6px solid ${getPriorityColor(task.priority)}`
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span 
+                      onClick={() => setSelectedBuilding(getBuildingLabel(task.location))} 
+                      style={{ ...styles.newPillBadge, cursor: 'pointer' }}
+                      title="Klik untuk filter riwayat di bawah"
+                    >
+                      🏢 {getBuildingLabel(task.location)}
+                    </span>
+                    <span style={styles.taskNumber}>
+                      {task.request_number}
+                    </span>
+                  </div>
+
+                  <h4 style={styles.newCardTitle}>{task.title}</h4>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#56665A' }}>
+                        <span>{getCategoryIcon(task.category)}</span>
+                        <span style={{ fontWeight: '500' }}>{task.category}</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#8E9A90', marginTop: '2px' }}>
+                        Pelapor: {task.reporter_name || 'Umum'}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Link to={`/requests/${task.id}`} style={{ ...styles.detailLink, marginRight: '8px' }}>
+                        Detail
+                      </Link>
+
+                      {task.status === 'ASSIGNED' && (
+                        <button 
+                          onClick={() => handleStartTask(task.id)} 
+                          style={styles.btnMulai}
+                        >
+                          Mulai →
+                        </button>
+                      )}
+
+                      {task.status === 'IN_PROGRESS' && (
+                        <button 
+                          onClick={() => openResolvedModal(task.id)} 
+                          style={styles.btnSelesai}
+                        >
+                          Tandai Selesai ✓
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* TASK LIST SECTION (45% Height) */}
+        {/* TASK LIST SECTION (All tasks: RESOLVED, CLOSED, etc.) */}
         <section id="task-list" style={styles.listSection}>
           <div style={styles.listHeader}>
-            <h3 className="nature-huge-header" style={{ fontSize: '20px', margin: 0 }}>
-              {selectedBuilding ? `Tugas Aktif di ${selectedBuilding}` : 'Semua Penugasan Aktif'} ({filteredTasks.length})
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="nature-huge-header" style={{ fontSize: '18px', margin: 0 }}>
+                {selectedBuilding ? `Riwayat Tugas di ${selectedBuilding}` : 'Semua Riwayat Tugas'} ({filteredTasks.length})
+              </h3>
+              {selectedBuilding && (
+                <button 
+                  onClick={() => setSelectedBuilding(null)} 
+                  style={styles.btnClearFilter}
+                >
+                  Tampilkan Semua ×
+                </button>
+              )}
+            </div>
           </div>
 
           {isLoading ? (
@@ -174,7 +283,7 @@ export const TechnicianPage: React.FC = () => {
             <div className="glass-card" style={styles.emptyCard}>
               <span style={{ fontSize: '32px' }}>🎉</span>
               <p style={{ color: '#56665A', fontSize: '14px', fontWeight: '700', marginTop: '8px', margin: 0 }}>
-                {selectedBuilding ? `Tidak ada tugas aktif di ${selectedBuilding}.` : 'Semua tugas perbaikan selesai! Bagus sekali.'}
+                {selectedBuilding ? `Tidak ada tugas di ${selectedBuilding}.` : 'Belum ada riwayat tugas perbaikan.'}
               </p>
             </div>
           ) : (
@@ -185,8 +294,12 @@ export const TechnicianPage: React.FC = () => {
                     <span style={styles.taskNumber}>{task.request_number}</span>
                     <span style={{
                       ...styles.statusBadge,
-                      backgroundColor: task.status === 'IN_PROGRESS' ? '#FEF3C7' : '#E0E8E1',
-                      color: task.status === 'IN_PROGRESS' ? '#B45309' : '#101411'
+                      backgroundColor: 
+                        task.status === 'IN_PROGRESS' ? '#FEF3C7' : 
+                        task.status === 'RESOLVED' ? '#D1FAE5' : '#E0E8E1',
+                      color: 
+                        task.status === 'IN_PROGRESS' ? '#B45309' : 
+                        task.status === 'RESOLVED' ? '#047857' : '#101411'
                     }}>
                       {task.status.replace('_', ' ')}
                     </span>
@@ -308,60 +421,75 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     flex: 1,
     padding: '24px',
-    gap: '24px',
+    gap: '32px',
     boxSizing: 'border-box',
-    height: 'calc(100vh - 75px)'
+    overflowY: 'auto'
   },
-  mapSection: {
-    flex: '55 0 280px',
-    minHeight: '280px',
-    maxHeight: '340px'
-  },
-  mapCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    borderRadius: '24px',
-    border: '1px solid rgba(255, 255, 255, 0.7)',
-    padding: '16px 24px',
+  tugasHariIniContainer: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
+    gap: '12px',
+  },
+  tugasGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+    gap: '16px',
+    maxHeight: '380px',
+    overflowY: 'auto',
+    padding: '4px'
+  },
+  newTugasCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: '16px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+    border: '1px solid #e5e7eb',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minHeight: '140px',
     boxSizing: 'border-box'
   },
-  mapHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '12px'
+  newPillBadge: {
+    backgroundColor: '#f1f5f9',
+    color: '#334155',
+    fontSize: '11px',
+    fontWeight: 700,
+    padding: '2px 8px',
+    borderRadius: '9999px',
   },
-  indicatorContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
+  newCardTitle: {
+    fontSize: '15px',
+    fontWeight: 600,
+    color: '#1e293b',
+    margin: '8px 0',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   },
-  pulseDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#2E7D32',
-    boxShadow: '0 0 8px #2E7D32',
+  btnMulai: {
+    border: '1px solid #1e293b',
+    backgroundColor: 'transparent',
+    color: '#1e293b',
+    padding: '6px 12px',
+    fontSize: '12px',
+    fontWeight: 600,
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
   },
-  mapTitle: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#101411',
-  },
-  svgWrapper: {
-    flex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'auto'
+  btnSelesai: {
+    backgroundColor: '#10b981',
+    color: '#ffffff',
+    border: 'none',
+    padding: '6px 12px',
+    fontSize: '12px',
+    fontWeight: 600,
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
   },
   listSection: {
-    flex: '45 0 220px',
     display: 'flex',
     flexDirection: 'column',
     minHeight: '200px'
@@ -447,6 +575,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: '800',
     color: '#101411',
     textDecoration: 'underline'
+  },
+  btnClearFilter: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '4px 12px',
+    fontSize: '11px',
+    fontWeight: '700',
+    color: '#56665A',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
   },
   checkDone: {
     fontSize: '12px',

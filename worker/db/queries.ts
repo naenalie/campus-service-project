@@ -104,43 +104,49 @@ export async function getAllRequests(
   db: D1Database, 
   filters?: { status?: string; category?: string; priority?: string; assigned_to?: string; reporter_id?: string; keyword?: string }
 ): Promise<ServiceRequest[]> {
-  let query = 'SELECT * FROM service_requests WHERE 1=1';
+  let query = `
+    SELECT r.*, u.name as reporter_name, a.name as assigned_name 
+    FROM service_requests r
+    LEFT JOIN users u ON r.reporter_id = u.id
+    LEFT JOIN users a ON r.assigned_to = a.id
+    WHERE 1=1
+  `;
   const params: string[] = [];
 
   if (filters) {
     if (filters.status) {
-      query += ' AND status = ?';
+      query += ' AND r.status = ?';
       params.push(filters.status.toUpperCase());
     }
     if (filters.category) {
-      query += ' AND category = ?';
+      query += ' AND r.category = ?';
       params.push(filters.category);
     }
     if (filters.priority) {
-      query += ' AND priority = ?';
+      query += ' AND r.priority = ?';
       params.push(filters.priority.toUpperCase());
     }
     if (filters.assigned_to) {
-      query += ' AND assigned_to = ?';
+      query += ' AND r.assigned_to = ?';
       params.push(filters.assigned_to);
     }
     if (filters.reporter_id) {
-      query += ' AND reporter_id = ?';
+      query += ' AND r.reporter_id = ?';
       params.push(filters.reporter_id);
     }
     if (filters.keyword) {
       query += ` AND (
-        request_number LIKE ?
-        OR title LIKE ?
-        OR description LIKE ?
-        OR location LIKE ?
+        r.request_number LIKE ?
+        OR r.title LIKE ?
+        OR r.description LIKE ?
+        OR r.location LIKE ?
       )`;
       const keyword = `%${filters.keyword.trim()}%`;
       params.push(keyword, keyword, keyword, keyword);
     }
   }
 
-  query += ' ORDER BY created_at DESC';
+  query += ' ORDER BY r.created_at DESC';
 
   const { results } = await db.prepare(query).bind(...params).all<ServiceRequest>();
   return results || [];
