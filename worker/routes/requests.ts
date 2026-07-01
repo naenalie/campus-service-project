@@ -36,11 +36,13 @@ export async function handleRequestRoutes(
       const status = url.searchParams.get('status');
       const category = url.searchParams.get('category');
       const priority = url.searchParams.get('priority');
+      const assigned_to = url.searchParams.get('assigned_to');
 
       const filters: any = {};
       if (status) filters.status = status;
       if (category) filters.category = category;
       if (priority) filters.priority = priority;
+      if (assigned_to) filters.assigned_to = assigned_to;
 
       // PELAPOR hanya boleh melihat laporannya sendiri
       if (user.role === 'PELAPOR') {

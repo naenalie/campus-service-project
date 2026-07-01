@@ -1,5 +1,5 @@
 // src/components/CampusMap.tsx
-// Peta Kampus UNKLAB 2D Landscape Flat & Interaktif (Menampilkan sarana perkuliahan utama)
+// Peta Kampus UNKLAB 2D Landscape Flat & Interaktif (Design Premium, High-fidelity Vector Layout)
 
 import React, { useState } from 'react';
 
@@ -26,72 +26,79 @@ interface Building {
   flatY: number;
   flatW: number;
   flatH: number;
+  icon: string;
 }
 
 export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding, onSelectBuilding }) => {
   const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
 
-  // Daftar Gedung Utama UNKLAB (Tanpa Rektorat Crystal dan Dormitory/Asrama)
+  // Daftar Gedung Utama UNKLAB (Sesuai Struktur Tata Letak Kampus Universitas Klabat)
   const buildings: Building[] = [
     {
       id: 'GK3',
       name: 'Gedung Kuliah 3 (GK3)',
       floors: 3,
       description: 'Gedung perkuliahan Fakultas Ekonomi & Bisnis serta Fakultas Filsafat.',
-      flatX: 50,
+      flatX: 60,
       flatY: 50,
       flatW: 190,
       flatH: 55,
+      icon: '🏫'
     },
     {
       id: 'GK2',
       name: 'Gedung Kuliah 2 (GK2)',
       floors: 3,
       description: 'Gedung perkuliahan umum dengan fasilitas laboratorium komputer terpadu.',
-      flatX: 50,
-      flatY: 130,
+      flatX: 60,
+      flatY: 125,
       flatW: 190,
       flatH: 55,
+      icon: '💻'
     },
     {
       id: 'GK1',
       name: 'Gedung Kuliah 1 (GK1)',
       floors: 3,
       description: 'Fakultas Pertanian, Keperawatan, pusat layanan mahasiswa, dan administrasi keuangan.',
-      flatX: 50,
-      flatY: 210,
+      flatX: 60,
+      flatY: 200,
       flatW: 190,
       flatH: 55,
+      icon: '🏥'
     },
     {
       id: 'Hall',
-      name: 'Fekon Hall & Gymnasium',
+      name: 'Fekon Hall & Gym',
       floors: 2,
       description: 'Auditorium utama universitas untuk acara wisuda, olahraga indoor, dan seminar.',
-      flatX: 320,
+      flatX: 590,
       flatY: 50,
-      flatW: 220,
+      flatW: 210,
       flatH: 60,
+      icon: '🏀'
     },
     {
       id: 'Chapel',
       name: 'Pioneer Chapel',
       floors: 1,
       description: 'Pusat ibadah ikonik UNKLAB dengan arsitektur atap segitiga runcing menjulang tinggi.',
-      flatX: 320,
+      flatX: 310,
       flatY: 150,
       flatW: 220,
-      flatH: 70,
+      flatH: 80,
+      icon: '⛪'
     },
     {
       id: 'Fernheim',
       name: 'Fernheim Cafeteria',
       floors: 2,
       description: 'Pusat jajanan mahasiswa, cafetaria kampus, dan Student Center.',
-      flatX: 580,
-      flatY: 100,
-      flatW: 220,
+      flatX: 590,
+      flatY: 140,
+      flatW: 210,
       flatH: 60,
+      icon: '☕'
     }
   ];
 
@@ -113,7 +120,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding
       <div style={styles.mapHeader}>
         <div style={styles.headerIndicator}>
           <span style={styles.pulseDot}></span>
-          <span style={styles.headerTitle}>Peta Visual Landscape Universitas Klabat (2D Flat)</span>
+          <span style={styles.headerTitle}>Peta Visual Landscape Universitas Klabat (Flat Vector 2D)</span>
         </div>
         <div style={styles.legend}>
           <span style={styles.legendItem}><span style={styles.legendGreen}></span> Normal</span>
@@ -125,65 +132,112 @@ export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding
       <div style={styles.mapContainer}>
         <svg width="860" height="420" viewBox="0 0 860 420" style={{ overflow: 'visible' }}>
           <defs>
-            {/* Gradien Padang Rumput Hijau Segar */}
+            {/* Gradien Padang Rumput Hijau Premium */}
             <linearGradient id="grassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2E7D32" stopOpacity="0.85" />
-              <stop offset="50%" stopColor="#388E3C" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#4CAF50" stopOpacity="0.8" />
+              <stop offset="0%" stopColor="#1E5E2F" />
+              <stop offset="50%" stopColor="#2E7D32" />
+              <stop offset="100%" stopColor="#388E3C" />
             </linearGradient>
-            {/* Gradien Danau Air Biru Tenang */}
+            {/* Gradien Danau Air Biru */}
             <linearGradient id="lakeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00A3E0" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#0284C7" stopOpacity="0.9" />
+              <stop offset="0%" stopColor="#0284C7" />
+              <stop offset="100%" stopColor="#0369A1" />
             </linearGradient>
+            {/* Radial Gradient untuk Pohon */}
+            <radialGradient id="treeGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#4ADE80" />
+              <stop offset="70%" stopColor="#15803D" />
+              <stop offset="100%" stopColor="#166534" />
+            </radialGradient>
             {/* Shadow Filter */}
             <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#000" floodOpacity="0.15" />
+              <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#000" floodOpacity="0.25" />
+            </filter>
+            {/* Glow Filter untuk Bangunan Rusak */}
+            <filter id="glowAlert" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
 
           {/* 1. HAMPARAN RUMPUT UTAMA */}
-          <rect x="10" y="10" width="840" height="400" rx="30" fill="url(#grassGrad)" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" filter="url(#softShadow)" />
+          <rect x="10" y="10" width="840" height="400" rx="30" fill="url(#grassGrad)" stroke="rgba(255,255,255,0.2)" strokeWidth="2" filter="url(#softShadow)" />
 
-          {/* 2. AREA DANAU DI SEBELAH KIRI */}
-          <path d="M 12 100 Q 80 130 90 200 Q 100 280 40 330 Q 12 350 12 350 Z" fill="url(#lakeGrad)" opacity="0.85" />
+          {/* 2. AREA DANAU ALAMIAH */}
+          <path d="M 12 100 Q 80 130 90 200 Q 100 280 40 330 Q 12 350 12 350 Z" fill="url(#lakeGrad)" opacity="0.9" />
 
-          {/* JALAN FLAT 2D */}
-          <line x1="270" y1="10" x2="270" y2="410" stroke="#475569" strokeWidth="16" opacity="0.6" />
-          <line x1="270" y1="10" x2="270" y2="410" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="6 6" opacity="0.4" />
+          {/* 3. TATA JALANAN KAMPUS (Road Network) */}
+          {/* Main Entrance Boulevard (Front/South to Roundabout) */}
+          <line x1="420" y1="410" x2="420" y2="280" stroke="#334155" strokeWidth="22" strokeLinecap="round" />
+          <line x1="420" y1="410" x2="420" y2="280" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="6 6" opacity="0.6" />
 
-          {/* Roundabout in the middle */}
-          <circle cx="440" cy="270" r="35" fill="#475569" opacity="0.6" />
-          <circle cx="440" cy="270" r="35" fill="none" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.4" />
-          <circle cx="440" cy="270" r="15" fill="#388E3C" />
+          {/* Circular Roundabout */}
+          <circle cx="420" cy="270" r="35" fill="#334155" />
+          <circle cx="420" cy="270" r="35" fill="none" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
+          <circle cx="420" cy="270" r="16" fill="#2E7D32" /> {/* Roundabout garden island */}
 
-          {/* Connecting road paths */}
-          <line x1="270" y1="270" x2="405" y2="270" stroke="#475569" strokeWidth="12" opacity="0.6" />
-          <line x1="475" y1="270" x2="570" y2="270" stroke="#475569" strokeWidth="12" opacity="0.6" />
+          {/* Connecting Crossroads */}
+          {/* West Road to GK buildings */}
+          <line x1="420" y1="270" x2="270" y2="270" stroke="#334155" strokeWidth="16" />
+          {/* East Road to Hall/Cafeteria */}
+          <line x1="420" y1="270" x2="570" y2="270" stroke="#334155" strokeWidth="16" />
 
-          {/* Flat Trees */}
-          <g fill="#1E3A1E" opacity="0.75">
-            <circle cx="120" cy="60" r="10" />
-            <circle cx="135" cy="50" r="8" />
-            <circle cx="110" cy="75" r="9" />
-            <circle cx="125" cy="180" r="11" />
-            <circle cx="130" cy="280" r="10" />
-            <circle cx="500" cy="60" r="10" />
-            <circle cx="520" cy="50" r="8" />
+          {/* Vertical road for GK buildings (West Wing) */}
+          <line x1="270" y1="40" x2="270" y2="350" stroke="#334155" strokeWidth="14" strokeLinecap="round" />
+          <line x1="270" y1="40" x2="270" y2="350" stroke="#FFFFFF" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
+
+          {/* Vertical road for Gym/Fernheim (East Wing) */}
+          <line x1="570" y1="40" x2="570" y2="350" stroke="#334155" strokeWidth="14" strokeLinecap="round" />
+          <line x1="570" y1="40" x2="570" y2="350" stroke="#FFFFFF" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
+
+          {/* Pedestrian Pathways (Dotted Lines) */}
+          <path d="M 270 200 L 310 200" fill="none" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="3 3" opacity="0.8" />
+          <path d="M 530 200 L 570 200" fill="none" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="3 3" opacity="0.8" />
+          <path d="M 420 150 L 420 235" fill="none" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="3 3" opacity="0.8" />
+
+          {/* 4. PARKIRAN KAMPUS (Parking Lots) */}
+          <g opacity="0.45" fill="#475569" stroke="#E2E8F0" strokeWidth="1">
+            {/* GK Parking */}
+            <rect x="210" y="275" width="45" height="30" rx="3" />
+            <text x="232" y="295" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">P</text>
+            {/* Hall Parking */}
+            <rect x="585" y="275" width="45" height="30" rx="3" />
+            <text x="607" y="295" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">P</text>
           </g>
 
-          {/* Gedung Flat 2D */}
+          {/* 5. TREE ROW GARDENS (Beautiful radial trees) */}
+          <g>
+            {/* Boulevard Trees */}
+            <circle cx="395" cy="380" r="8" fill="url(#treeGrad)" />
+            <circle cx="395" cy="340" r="8" fill="url(#treeGrad)" />
+            <circle cx="395" cy="300" r="8" fill="url(#treeGrad)" />
+            <circle cx="445" cy="380" r="8" fill="url(#treeGrad)" />
+            <circle cx="445" cy="340" r="8" fill="url(#treeGrad)" />
+            <circle cx="445" cy="300" r="8" fill="url(#treeGrad)" />
+
+            {/* Central Roundabout Flowers/Garden */}
+            <circle cx="420" cy="270" r="6" fill="#F59E0B" />
+            
+            {/* Lakeside forest */}
+            <circle cx="85" cy="140" r="12" fill="url(#treeGrad)" />
+            <circle cx="100" cy="155" r="14" fill="url(#treeGrad)" />
+            <circle cx="105" cy="225" r="11" fill="url(#treeGrad)" />
+            <circle cx="110" cy="245" r="13" fill="url(#treeGrad)" />
+          </g>
+
+          {/* 6. INTERACTIVE BUILDINGS LAYER */}
           {buildings.map(b => {
             const activeRequests = getBuildingRequests(b.id);
             const hasProblem = activeRequests.length > 0;
             const isHovered = hoveredBuilding === b.id;
             const isSelected = selectedBuilding === b.id;
 
-            // Styling status
+            // Premium Styling based on status
             let cardBg = 'rgba(255, 255, 255, 0.95)';
-            let strokeColor = 'rgba(255,255,255,0.8)';
+            let strokeColor = 'rgba(0,0,0,0.1)';
             let strokeW = 1.5;
-            let textColor = '#101411';
+            let textColor = '#0F172A';
+            let alertPulse = false;
 
             if (isSelected) {
               cardBg = '#D4E875';
@@ -191,15 +245,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding
               strokeW = 3;
               textColor = '#101411';
             } else if (isHovered) {
-              cardBg = '#E6F4A8';
-              strokeColor = '#101411';
-              strokeW = 2;
-              textColor = '#101411';
+              cardBg = '#F3FEE3';
+              strokeColor = '#1B4332';
+              strokeW = 2.5;
+              textColor = '#1B4332';
             } else if (hasProblem) {
-              cardBg = '#FEF3C7';
-              strokeColor = '#D97706';
-              strokeW = 2;
+              cardBg = '#FEF3C7'; // Warm Warning Amber
+              strokeColor = '#F59E0B'; // Warning Solid Orange
+              strokeW = 2.5;
               textColor = '#92400E';
+              alertPulse = true;
             }
 
             const x = b.flatX;
@@ -215,40 +270,76 @@ export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding
                 onClick={() => onSelectBuilding(isSelected ? null : b.id)}
                 style={{ cursor: 'pointer' }}
               >
-                {/* Building Base Rectangle */}
+                {/* Glowing shadow effect for problem buildings */}
+                {alertPulse && (
+                  <rect
+                    x={x - 4}
+                    y={y - 4}
+                    width={w + 8}
+                    height={h + 8}
+                    rx="16"
+                    ry="16"
+                    fill="none"
+                    stroke="rgba(245, 158, 11, 0.5)"
+                    strokeWidth="4"
+                    filter="url(#glowAlert)"
+                  />
+                )}
+
+                {/* Building Base Shape */}
                 <rect
                   x={x}
                   y={y}
                   width={w}
                   height={h}
-                  rx="12"
-                  ry="12"
+                  rx="14"
+                  ry="14"
                   fill={cardBg}
                   stroke={strokeColor}
                   strokeWidth={strokeW}
                   filter="url(#softShadow)"
-                  style={{ transition: 'all 0.25s ease' }}
+                  style={{ transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}
                 />
 
-                {/* Building Name Text */}
-                <text
-                  x={x + w/2}
-                  y={y + h/2 + 4}
-                  fill={textColor}
-                  fontSize="12"
-                  fontWeight="800"
-                  fontFamily="Outfit, sans-serif"
-                  textAnchor="middle"
-                  pointerEvents="none"
-                >
-                  {b.name}
-                </text>
+                {/* Left Accent Bar for visual detail */}
+                <rect
+                  x={x + 1}
+                  y={y + 12}
+                  width="4"
+                  height={h - 24}
+                  rx="2"
+                  fill={hasProblem ? '#F59E0B' : (isSelected || isHovered ? '#1B4332' : '#64748B')}
+                />
 
-                {/* Pin Warning Badge */}
+                {/* Icon & Building Title Group */}
+                <g transform={`translate(${x + 16}, ${y + h/2 - 1})`}>
+                  <text
+                    x="0"
+                    y="5"
+                    fontSize="18"
+                    fontFamily="Outfit, sans-serif"
+                    pointerEvents="none"
+                  >
+                    {b.icon}
+                  </text>
+                  <text
+                    x="28"
+                    y="4"
+                    fill={textColor}
+                    fontSize="12.5"
+                    fontWeight="800"
+                    fontFamily="Outfit, sans-serif"
+                    pointerEvents="none"
+                  >
+                    {b.name}
+                  </text>
+                </g>
+
+                {/* Warning Counter Indicator Badge */}
                 {hasProblem && (
-                  <g transform={`translate(${x + w - 10}, ${y + 10})`}>
-                    <circle cx="0" cy="0" r="10" fill="#EF4444" stroke="#ffffff" strokeWidth="1.5" />
-                    <text x="0" y="3" fill="#ffffff" fontSize="9" fontWeight="900" textAnchor="middle">
+                  <g transform={`translate(${x + w - 12}, ${y + 12})`}>
+                    <circle cx="0" cy="0" r="10.5" fill="#EF4444" stroke="#ffffff" strokeWidth="1.5" />
+                    <text x="0" y="3" fill="#ffffff" fontSize="9.5" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
                       {activeRequests.length}
                     </text>
                   </g>
@@ -266,13 +357,13 @@ export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding
           style={styles.popupCard}
         >
           <div className="card-slide4-tab">
-            <span>⚙️</span> INFO DETAIL
+            <span>⚙️</span> INFO DETAIL GEDUNG
           </div>
 
           <div style={styles.popupHeader}>
             <div>
               <h4 style={styles.popupTitle}>{activeSelectedBuilding.name}</h4>
-              <p style={styles.popupSubtitle}>{activeSelectedBuilding.floors} Lantai • {activeSelectedBuilding.id}</p>
+              <p style={styles.popupSubtitle}>{activeSelectedBuilding.floors} Lantai • Kode: {activeSelectedBuilding.id}</p>
             </div>
             <button 
               onClick={() => onSelectBuilding(null)}
@@ -287,7 +378,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({ requests, selectedBuilding
               {activeSelectedBuilding.description}
             </p>
             
-            <p style={styles.popupSectionTitle}>Laporan Kerusakan ({selectedBuildingRequests.length}):</p>
+            <p style={styles.popupSectionTitle}>Laporan Kerusakan Aktif ({selectedBuildingRequests.length}):</p>
             {selectedBuildingRequests.length === 0 ? (
               <p style={styles.emptyText}>Tidak ada keluhan aktif di gedung ini. Aman! 🎉</p>
             ) : (

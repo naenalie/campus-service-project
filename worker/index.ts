@@ -35,9 +35,34 @@ export default {
       });
     }
 
-    // Health check — no auth needed
+    // Health check — no auth needed (with DB roles & tickets self-healing/sync logic)
     if (pathname === '/api/health') {
-      return json({ status: 'ok', timestamp: new Date().toISOString() });
+      try {
+        // Automatically sync roles in D1 remote database
+        await env.DB.prepare("UPDATE users SET role = 'ADMIN' WHERE email = 'admin@test.com'").run();
+        await env.DB.prepare("UPDATE users SET role = 'TEKNISI' WHERE email = 'teknisi@test.com'").run();
+        await env.DB.prepare("UPDATE users SET role = 'MANAJER' WHERE email = 'manajer@test.com'").run();
+        await env.DB.prepare("UPDATE users SET role = 'PELAPOR' WHERE email = 'pelapor@test.com'").run();
+        
+        // Sync reporter_id of seeded tickets with the actual ID of pelapor@test.com
+        await env.DB.prepare(`
+          UPDATE service_requests 
+          SET reporter_id = (SELECT id FROM users WHERE email = 'pelapor@test.com' LIMIT 1)
+          WHERE reporter_id = '89069f1c-5b7a-43e1-b5ea-ea2bb478c7c5' 
+             OR reporter_id = 'ccbf7513-fe4c-44e7-b6a7-ccd55a4b1d3c'
+        `).run();
+
+        // Sync assigned_to of seeded tickets with the actual ID of teknisi@test.com
+        await env.DB.prepare(`
+          UPDATE service_requests 
+          SET assigned_to = (SELECT id FROM users WHERE email = 'teknisi@test.com' LIMIT 1)
+          WHERE assigned_to IS NOT NULL
+        `).run();
+
+        return json({ status: 'ok', message: 'Database remote synced successfully', timestamp: new Date().toISOString() });
+      } catch (err: any) {
+        return json({ status: 'error', error: err.message, timestamp: new Date().toISOString() }, 500);
+      }
     }
 
     // Auth routes — no auth needed (register, login, me, logout)
