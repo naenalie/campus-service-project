@@ -52,9 +52,15 @@ export async function handleTechnicianRoutes(
     const parts = pathname.split('/');
 
     // -------------------------------------------------------------
-    // PATCH /api/requests/:id/progress - Update progress perbaikan oleh Teknisi
+    // PATCH /api/requests/:id/status atau /progress - Update progress perbaikan oleh Teknisi
     // -------------------------------------------------------------
-    if (method === 'PATCH' && parts.length === 5 && parts[1] === 'api' && parts[2] === 'requests' && parts[4] === 'progress') {
+    if (
+      method === 'PATCH' &&
+      parts.length === 5 &&
+      parts[1] === 'api' &&
+      parts[2] === 'requests' &&
+      (parts[4] === 'progress' || parts[4] === 'status')
+    ) {
       const id = parts[3];
 
       const requestData = await getRequestById(env.DB, id);
@@ -77,7 +83,8 @@ export async function handleTechnicianRoutes(
         return new Response(JSON.stringify(res), { status: 400, headers: jsonHeaders });
       }
 
-      const targetStatus = typeof body.status === 'string' ? body.status.trim().toUpperCase() : '';
+      const statusInput = body.status ?? body.new_status;
+      const targetStatus = typeof statusInput === 'string' ? statusInput.trim().toUpperCase() : '';
       const note = typeof body.notes === 'string' ? body.notes.trim() : '';
 
       if (!targetStatus || !ALLOWED_TECH_STATUSES.includes(targetStatus)) {

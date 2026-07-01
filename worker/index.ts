@@ -90,6 +90,21 @@ export default {
       return handleTechnicianRoutes(request, env, url, user);
     }
 
+    // Aksi mutasi tiket di bawah /api/requests perlu diarahkan ke handler role.
+    // Handler umum tetap menangani create, list, detail, komentar, history, dan confirm.
+    if (pathname.startsWith('/api/requests/') && request.method === 'PATCH') {
+      const parts = pathname.split('/');
+      const action = parts[4];
+
+      if (['assign', 'priority'].includes(action) || (action === 'status' && user.role === 'ADMIN')) {
+        return handleAdminRoutes(request, env, url, user);
+      }
+
+      if ((action === 'status' || action === 'progress') && user.role === 'TEKNISI') {
+        return handleTechnicianRoutes(request, env, url, user);
+      }
+    }
+
     if (pathname.startsWith('/api/requests')) {
       return handleRequestRoutes(request, env, url, user);
     }
