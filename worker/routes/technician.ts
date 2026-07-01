@@ -40,7 +40,10 @@ export async function handleTechnicianRoutes(
         filters.status = status.toUpperCase();
       }
 
-      const requests = await getAllRequests(env.DB, filters);
+      let requests = await getAllRequests(env.DB, filters);
+      if (!status) {
+        requests = requests.filter(r => r.status !== 'CLOSED');
+      }
       
       const res: ApiResponse<any[]> = {
         success: true,

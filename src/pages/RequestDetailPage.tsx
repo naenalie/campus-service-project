@@ -22,10 +22,7 @@ export const RequestDetailPage: React.FC = () => {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  // Admin Custom Dropdowns UI State
-  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
-  const [showAssignDropdown, setShowAssignDropdown] = useState(false);
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
 
   // Pelapor Rejection Modal
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -126,7 +123,6 @@ export const RequestDetailPage: React.FC = () => {
   const handleUpdatePriority = async (newPriority: string) => {
     if (!id) return;
     setIsActionLoading(true);
-    setShowPriorityDropdown(false);
     try {
       const response = await fetch(`/api/requests/${id}/priority`, {
         method: 'PATCH',
@@ -151,7 +147,6 @@ export const RequestDetailPage: React.FC = () => {
   const handleAssignTechnician = async (techId: string) => {
     if (!id) return;
     setIsActionLoading(true);
-    setShowAssignDropdown(false);
     try {
       await api.assignTechnician(id, techId);
       await fetchDetail();
@@ -166,7 +161,6 @@ export const RequestDetailPage: React.FC = () => {
   const handleUpdateStatusAdmin = async (targetStatus: string) => {
     if (!id) return;
     setIsActionLoading(true);
-    setShowStatusDropdown(false);
     try {
       await api.updateStatus(id, targetStatus, 'Status diperbarui secara manual oleh Administrator.');
       await fetchDetail();
@@ -182,7 +176,7 @@ export const RequestDetailPage: React.FC = () => {
     if (!id || isActionLoading) return;
     setIsActionLoading(true);
     try {
-      await api.updateStatus(id, 'IN_PROGRESS', 'Teknisi memulai pengerjaan perbaikan.');
+      await api.updateProgress(id, 'IN_PROGRESS', 'Teknisi memulai pengerjaan.');
       await fetchDetail();
     } catch (err: any) {
       alert(err.message || 'Gagal memperbarui progres.');
@@ -192,18 +186,34 @@ export const RequestDetailPage: React.FC = () => {
   };
 
   const handleCompleteTaskTech = () => {
-    const notes = window.prompt('Masukkan catatan penyelesaian perbaikan:');
+    const notes = window.prompt('Masukkan catatan penyelesaian perbaikan (min 10 karakter):');
     if (notes === null) return;
-    if (!notes.trim()) {
-      alert('Catatan penyelesaian wajib diisi!');
+    if (notes.trim().length < 10) {
+      alert('Catatan penyelesaian wajib diisi minimal 10 karakter!');
       return;
     }
     
     setIsActionLoading(true);
-    api.updateStatus(id!, 'RESOLVED', notes.trim())
+    api.updateProgress(id!, 'RESOLVED', notes.trim())
       .then(() => fetchDetail())
       .catch((err) => alert(err.message || 'Gagal menandai tugas selesai.'))
       .finally(() => setIsActionLoading(false));
+  };
+
+  // 8. Aksi Pelapor: Buka Kembali / Reopen
+  const handleReopen = async () => {
+    if (!id || isActionLoading) return;
+    if (window.confirm('Apakah Anda ingin membuka kembali laporan keluhan ini?')) {
+      setIsActionLoading(true);
+      try {
+        await api.updateStatus(id, 'SUBMITTED', 'Laporan dibuka kembali oleh pelapor.');
+        await fetchDetail();
+      } catch (err: any) {
+        alert(err.message || 'Gagal membuka kembali laporan.');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
   };
 
   // Format Tanggal
@@ -280,6 +290,8 @@ export const RequestDetailPage: React.FC = () => {
 
           <div style={{ borderTop: '1px solid #E0E8E1', paddingTop: '16px', fontSize: '14px', color: '#56665A', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span>📍 Lokasi: <strong>{request.location}</strong></span>
+            <span>👤 Pelapor: <strong>{request.reporter_name || 'Tidak diketahui'}</strong></span>
+            <span>🔧 Teknisi Penanggungjawab: <strong>{request.assigned_name || 'Belum ditugaskan'}</strong></span>
             <span>🕒 Dilaporkan pada: <strong>{formatTime(request.created_at)}</strong></span>
           </div>
         </div>
@@ -391,141 +403,138 @@ export const RequestDetailPage: React.FC = () => {
         </div>
 
         {/* 5. ACTION CONTROL BAR */}
-        {!isClosed && (
-          <div className="nature-main-card" style={{ padding: '24px' }}>
-            
-            {/* AKSES PELAPOR & status RESOLVED */}
-            {user?.role === 'PELAPOR' && request.status === 'RESOLVED' && (
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button 
-                  onClick={handleConfirmAccept}
-                  disabled={isActionLoading}
-                  className="nature-pill active"
-                  style={{ flex: 1, justifyContent: 'center' }}
-                >
-                  Setuju & Konfirmasi Selesai
-                </button>
-                <button 
-                  onClick={() => setShowRejectModal(true)}
-                  disabled={isActionLoading}
-                  className="nature-pill inactive"
-                  style={{ flex: 1, justifyContent: 'center', color: '#991B1B' }}
-                >
-                  Tidak Setuju & Komplain
-                </button>
-              </div>
-            )}
+        <div className="nature-main-card" style={{ padding: '24px' }}>
+          
+          {/* PELAPOR & status RESOLVED (Konfirmasi / Komplain) */}
+          {user?.role === 'PELAPOR' && request.status === 'RESOLVED' && (
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <button 
+                onClick={handleConfirmAccept}
+                disabled={isActionLoading}
+                className="nature-pill active"
+                style={{ flex: 1, justifyContent: 'center' }}
+              >
+                ✅ Konfirmasi Selesai
+              </button>
+              <button 
+                onClick={() => setShowRejectModal(true)}
+                disabled={isActionLoading}
+                className="nature-pill inactive"
+                style={{ flex: 1, justifyContent: 'center', color: '#991B1B' }}
+              >
+                Tidak Setuju & Komplain
+              </button>
+            </div>
+          )}
 
-            {/* AKSES ADMINISTRATOR (Dropdown controls) */}
-            {user?.role === 'ADMIN' && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
+          {/* PELAPOR & status CLOSED (Laporkan Ulang) */}
+          {user?.role === 'PELAPOR' && request.status === 'CLOSED' && (
+            <button 
+              onClick={handleReopen}
+              disabled={isActionLoading}
+              className="nature-pill active"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              🔄 Laporkan Ulang (Buka Kembali)
+            </button>
+          )}
+
+          {/* ADMINISTRATOR (Kelola Tiket) */}
+          {user?.role === 'ADMIN' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '800', margin: 0, color: '#101411' }}>Kelola Laporan (Admin):</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                 
                 {/* 1. Dropdown Ubah Status */}
-                <div style={{ position: 'relative' }}>
-                  <button 
-                    onClick={() => {
-                      setShowStatusDropdown(!showStatusDropdown);
-                      setShowAssignDropdown(false);
-                      setShowPriorityDropdown(false);
-                    }}
-                    className="nature-pill inactive"
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 160px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '800', color: '#68776B' }}>STATUS</label>
+                  <select 
+                    value={request.status} 
+                    onChange={(e) => handleUpdateStatusAdmin(e.target.value)}
+                    style={selectStyle}
                   >
-                    Ubah Status ▾
-                  </button>
-                  {showStatusDropdown && (
-                    <div style={localStyles.dropdownMenu}>
-                      <button onClick={() => handleUpdateStatusAdmin('UNDER_REVIEW')} style={localStyles.dropdownItem}>UNDER REVIEW</button>
-                      <button onClick={() => handleUpdateStatusAdmin('CLOSED')} style={localStyles.dropdownItem}>CLOSED (TUTUP)</button>
-                    </div>
-                  )}
+                    <option value="SUBMITTED">SUBMITTED</option>
+                    <option value="UNDER_REVIEW">UNDER REVIEW</option>
+                    <option value="ASSIGNED">ASSIGNED</option>
+                    <option value="IN_PROGRESS">IN PROGRESS</option>
+                    <option value="RESOLVED">RESOLVED</option>
+                    <option value="CLOSED">CLOSED</option>
+                  </select>
                 </div>
 
                 {/* 2. Dropdown Assign Teknisi */}
-                {request.status === 'UNDER_REVIEW' && (
-                  <div style={{ position: 'relative' }}>
-                    <button 
-                      onClick={() => {
-                        setShowAssignDropdown(!showAssignDropdown);
-                        setShowStatusDropdown(false);
-                        setShowPriorityDropdown(false);
-                      }}
-                      className="nature-pill inactive"
-                    >
-                      Tugaskan Teknisi ▾
-                    </button>
-                    {showAssignDropdown && (
-                      <div style={localStyles.dropdownMenu}>
-                        {technicians.length === 0 ? (
-                          <span style={{ padding: '10px 16px', color: '#8E9A90', fontSize: '12px' }}>Belum ada teknisi aktif</span>
-                        ) : (
-                          technicians.map(t => (
-                            <button 
-                              key={t.id} 
-                              onClick={() => handleAssignTechnician(t.id)} 
-                              style={localStyles.dropdownItem}
-                            >
-                              {t.name}
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 160px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '800', color: '#68776B' }}>TUGASKAN TEKNISI</label>
+                  <select 
+                    value={request.assigned_to || ''} 
+                    onChange={(e) => handleAssignTechnician(e.target.value)}
+                    style={selectStyle}
+                  >
+                    <option value="">-- Pilih Teknisi --</option>
+                    {technicians.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* 3. Dropdown Ubah Prioritas */}
-                <div style={{ position: 'relative' }}>
-                  <button 
-                    onClick={() => {
-                      setShowPriorityDropdown(!showPriorityDropdown);
-                      setShowStatusDropdown(false);
-                      setShowAssignDropdown(false);
-                    }}
-                    className="nature-pill inactive"
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 160px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '800', color: '#68776B' }}>PRIORITAS</label>
+                  <select 
+                    value={request.priority} 
+                    onChange={(e) => handleUpdatePriority(e.target.value)}
+                    style={selectStyle}
                   >
-                    Set Prioritas ▾
-                  </button>
-                  {showPriorityDropdown && (
-                    <div style={localStyles.dropdownMenu}>
-                      <button onClick={() => handleUpdatePriority('LOW')} style={localStyles.dropdownItem}>LOW</button>
-                      <button onClick={() => handleUpdatePriority('MEDIUM')} style={localStyles.dropdownItem}>MEDIUM</button>
-                      <button onClick={() => handleUpdatePriority('HIGH')} style={localStyles.dropdownItem}>HIGH</button>
-                      <button onClick={() => handleUpdatePriority('CRITICAL')} style={localStyles.dropdownItem}>CRITICAL</button>
-                    </div>
-                  )}
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
                 </div>
 
               </div>
-            )}
+            </div>
+          )}
 
-            {/* AKSES TEKNISI (Jika tiket dialokasikan padanya) */}
-            {user?.role === 'TEKNISI' && request.assigned_to === user.id && (
-              <div style={{ display: 'flex', gap: '16px' }}>
-                {request.status === 'ASSIGNED' && (
-                  <button 
-                    onClick={handleStartTaskTech}
-                    disabled={isActionLoading}
-                    className="nature-pill active"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    Mulai Pengerjaan Perbaikan →
-                  </button>
-                )}
-                {request.status === 'IN_PROGRESS' && (
-                  <button 
-                    onClick={handleCompleteTaskTech}
-                    disabled={isActionLoading}
-                    className="nature-pill active"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    Tandai Perbaikan Selesai ✓
-                  </button>
-                )}
-              </div>
-            )}
+          {/* TEKNISI (Update progress) */}
+          {user?.role === 'TEKNISI' && request.assigned_to === user.id && (
+            <div style={{ display: 'flex', gap: '16px' }}>
+              {request.status === 'ASSIGNED' && (
+                <button 
+                  onClick={handleStartTaskTech}
+                  disabled={isActionLoading}
+                  className="nature-pill active"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  🔧 Mulai Pengerjaan
+                </button>
+              )}
+              {request.status === 'IN_PROGRESS' && (
+                <button 
+                  onClick={handleCompleteTaskTech}
+                  disabled={isActionLoading}
+                  className="nature-pill active"
+                  style={{ width: '100%', justifyContent: 'center', backgroundColor: '#047857' }}
+                >
+                  ✅ Tandai Selesai
+                </button>
+              )}
+              {['RESOLVED', 'CLOSED'].includes(request.status) && (
+                <div style={{ width: '100%', textAlign: 'center', color: '#047857', fontWeight: '800', fontSize: '14px' }}>
+                  ✓ Perbaikan Selesai
+                </div>
+              )}
+            </div>
+          )}
 
-          </div>
-        )}
+          {/* FALLBACK INFO PERAN */}
+          {user?.role === 'MANAJER' && (
+            <div style={{ textAlign: 'center', color: '#68776B', fontSize: '13px', fontWeight: '700' }}>
+              Mode Manajer: Akses data laporan bersifat read-only.
+            </div>
+          )}
+
+        </div>
 
       </div>
 
@@ -587,6 +596,20 @@ export const RequestDetailPage: React.FC = () => {
 
     </div>
   );
+};
+
+const selectStyle: React.CSSProperties = {
+  padding: '10px 16px',
+  borderRadius: '9999px',
+  border: '2px solid #C0D0C4',
+  backgroundColor: '#FFFFFF',
+  color: '#101411',
+  fontWeight: '700',
+  fontSize: '13px',
+  outline: 'none',
+  cursor: 'pointer',
+  width: '100%',
+  boxSizing: 'border-box',
 };
 
 const localStyles: Record<string, React.CSSProperties> = {

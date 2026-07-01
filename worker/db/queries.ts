@@ -147,10 +147,24 @@ export async function getAllRequests(
 }
 
 export async function getRequestById(db: D1Database, id: string): Promise<ServiceRequest | null> {
-  return await db
+  const rawRequest = await db
     .prepare('SELECT * FROM service_requests WHERE id = ? LIMIT 1')
     .bind(id)
     .first<ServiceRequest>();
+
+  if (!rawRequest) return null;
+
+  // Ambil nama pelapor dan teknisi secara terpisah untuk menjaga kompatibilitas dengan test mock
+  const reporter = await db.prepare('SELECT name FROM users WHERE id = ?').bind(rawRequest.reporter_id).first<{ name: string }>();
+  const assigned = rawRequest.assigned_to 
+    ? await db.prepare('SELECT name FROM users WHERE id = ?').bind(rawRequest.assigned_to).first<{ name: string }>()
+    : null;
+
+  return {
+    ...rawRequest,
+    reporter_name: reporter?.name || null,
+    assigned_name: assigned?.name || null
+  };
 }
 
 export async function createRequest(

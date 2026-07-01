@@ -75,6 +75,14 @@ export async function listRequests(filters?: any): Promise<any[]> {
   return handleResponse<any[]>(response);
 }
 
+export async function listTechnicianTasks(): Promise<any[]> {
+  const response = await fetch(`${BASE_URL}/teknisi/tasks`, {
+    method: 'GET',
+    headers: getHeaders()
+  });
+  return handleResponse<any[]>(response);
+}
+
 export async function getRequestDetail(id: string): Promise<any> {
   const response = await fetch(`${BASE_URL}/requests/${id}`, {
     method: 'GET',
@@ -97,6 +105,15 @@ export async function updateStatus(id: string, newStatus: string, notes?: string
     method: 'PATCH',
     headers: getHeaders(),
     body: JSON.stringify({ new_status: newStatus, notes })
+  });
+  return handleResponse<any>(response);
+}
+
+export async function updateProgress(id: string, status: string, note?: string): Promise<any> {
+  const response = await fetch(`${BASE_URL}/requests/${id}/progress`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ status, note })
   });
   return handleResponse<any>(response);
 }

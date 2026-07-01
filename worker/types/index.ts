@@ -29,6 +29,8 @@ export interface ServiceRequest {
   assigned_to: string | null;
   created_at: string;
   updated_at: string;
+  reporter_name?: string | null;
+  assigned_name?: string | null;
 }
 
 export interface StatusHistory {

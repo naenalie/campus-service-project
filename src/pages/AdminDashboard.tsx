@@ -88,14 +88,7 @@ export const AdminDashboard: React.FC = () => {
     return matchesStatus && matchesCategory && matchesKeyword && matchesBuilding;
   });
 
-  // Urutan Status & Data Stat Cards
-  const statsConfig = [
-    { key: 'SUBMITTED', label: 'Baru', color: '#8B5CF6', icon: '🟣' },
-    { key: 'UNDER_REVIEW', label: 'Ditinjau', color: '#3B82F6', icon: '🔵' },
-    { key: 'ASSIGNED', label: 'Dialokasikan', color: '#10B981', icon: '🟢' },
-    { key: 'IN_PROGRESS', label: 'Perbaikan', color: '#F59E0B', icon: '🟡' },
-    { key: 'RESOLVED', label: 'Selesai', color: '#10B981', icon: '🟢' }
-  ];
+
 
   const categoryCounts = summary?.by_category || {};
   const totalCategoryTickets = Object.values(categoryCounts).reduce((a: any, b: any) => a + b, 0) as number;
@@ -160,23 +153,25 @@ export const AdminDashboard: React.FC = () => {
             {/* TAMPILAN DASHBOARD METRICS */}
             {activeTab === 'dashboard' && (
               <>
-                {/* 5 KPI STAT CARDS */}
+                {/* 4 KPI STAT CARDS */}
                 <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '28px' }}>
-                  {statsConfig.map(stat => {
-                    const count = summary?.by_status?.[stat.key] || 0;
-                    return (
-                      <div key={stat.key} className="glass-card" style={{ flex: '1 0 160px', padding: '24px', borderRadius: '32px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: '800', color: stat.color, textTransform: 'uppercase' }}>
-                            {stat.label}
-                          </span>
-                          <span>{stat.icon}</span>
-                        </div>
-                        <p style={{ fontSize: '40px', fontWeight: '800', color: '#101411', margin: 0 }}>{count}</p>
-                        <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Total Laporan</p>
+                  {[
+                    { label: 'Total Laporan', count: requests.length, color: '#101411', icon: '📋' },
+                    { label: 'Butuh Perhatian', count: requests.filter(r => ['SUBMITTED', 'UNDER_REVIEW'].includes(r.status)).length, color: '#8B5CF6', icon: '🚨' },
+                    { label: 'Sedang Dikerjakan', count: requests.filter(r => ['ASSIGNED', 'IN_PROGRESS'].includes(r.status)).length, color: '#F59E0B', icon: '🔧' },
+                    { label: 'Selesai', count: requests.filter(r => ['RESOLVED', 'CLOSED'].includes(r.status)).length, color: '#10B981', icon: '✅' },
+                  ].map((stat, idx) => (
+                    <div key={idx} className="glass-card" style={{ flex: '1 0 160px', padding: '24px', borderRadius: '32px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: stat.color, textTransform: 'uppercase' }}>
+                          {stat.label}
+                        </span>
+                        <span>{stat.icon}</span>
                       </div>
-                    );
-                  })}
+                      <p style={{ fontSize: '40px', fontWeight: '800', color: '#101411', margin: 0 }}>{stat.count}</p>
+                      <p style={{ fontSize: '12px', color: '#68776B', margin: 0 }}>Laporan</p>
+                    </div>
+                  ))}
                 </div>
 
                 {/* 2D CAMPUS MAP VISUALIZATION FOR ADMIN */}
