@@ -2,7 +2,7 @@
 // Komponen Route Guard (CR-02) untuk proteksi halaman berbasis autentikasi dan otorisasi role
 
 import React from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
@@ -12,7 +12,6 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, token, isLoading } = useAuth();
-  const navigate = useNavigate();
 
   // 1. Tampilkan state loading jika sistem sedang memverifikasi token sesi di background
   if (isLoading) {
@@ -30,31 +29,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return <Navigate to="/login" replace />;
   }
 
-  // 3. Jika user login tetapi rolenya tidak termasuk dalam allowedRoles -> render UI Akses Ditolak
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Cari URL kembali berdasarkan default role
-    let homeUrl = '/';
-    if (user.role === 'ADMIN') homeUrl = '/admin';
-    if (user.role === 'TEKNISI') homeUrl = '/teknisi';
-    if (user.role === 'MANAJER') homeUrl = '/manajer';
-
-    return (
-      <div style={styles.deniedContainer}>
-        <div style={styles.deniedCard}>
-          <span style={styles.deniedIcon}>🚫</span>
-          <h2 style={styles.deniedTitle}>Akses Ditolak</h2>
-          <p style={styles.deniedText}>
-            Peran Anda (**{user.role}**) tidak memiliki izin akses untuk membuka halaman ini.
-          </p>
-          <button 
-            onClick={() => navigate(homeUrl)}
-            style={styles.deniedButton}
-          >
-            ← Kembali ke Beranda Anda
-          </button>
-        </div>
-      </div>
-    );
+    // Redirect ke halaman yang sesuai role mereka
+    if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
+    if (user.role === 'TEKNISI') return <Navigate to="/teknisi" replace />;
+    if (user.role === 'MANAJER') return <Navigate to="/manajer" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // 4. Lolos semua verifikasi -> render children

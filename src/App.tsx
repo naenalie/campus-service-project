@@ -55,7 +55,16 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <span>🏠</span> <span className="nature-sidebar-text">Beranda</span>
           </Link>
           <Link to="/create" className={`nature-sidebar-link ${isActive('/create') ? 'active' : ''}`}>
-            <span>➕</span> <span className="nature-sidebar-text">Lapor Baru</span>
+            <span>➕</span> <span className="nature-sidebar-text">Buat Laporan</span>
+          </Link>
+          <Link to="/#laporan-saya" className="nature-sidebar-link" onClick={() => {
+            if (window.location.pathname === '/') {
+              document.getElementById('laporan-saya')?.scrollIntoView({ behavior: 'smooth' });
+            } else {
+              window.location.href = '/#laporan-saya';
+            }
+          }}>
+            <span>📋</span> <span className="nature-sidebar-text">Laporan Saya</span>
           </Link>
           {user?.role !== 'PELAPOR' && (
             <Link to={roleDashboardLink} className={`nature-sidebar-link ${isActive(roleDashboardLink) ? 'active' : ''}`}>

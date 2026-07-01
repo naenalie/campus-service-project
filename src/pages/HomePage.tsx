@@ -159,7 +159,7 @@ export const HomePage: React.FC = () => {
 
 
           {/* 3. REPORT LISTING SECTION */}
-          <div className="nature-main-card">
+          <div className="nature-main-card" id="laporan-saya">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <span className="nature-micro-label">RIWAYAT AKTIVITAS</span>
